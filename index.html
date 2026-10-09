@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Whimsify</title>
+<meta name="description" content="Helping people find more delightful ways to say what they mean. Dial one of ten voices and hear any message come back funnier, fancier or more dramatic.">
+<meta property="og:title" content="Whimsify">
+<meta property="og:description" content="Same message. Different line. Dial one of ten voices on the Whimsy Hotline.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://whimsify.app/">
+<meta property="og:image" content="https://whimsify.app/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://whimsify.app/preview.png">
+<meta name="theme-color" content="#efece6">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap">
+<style>
+/* Layout: one centered column on warm paper. Phone + plain white directory side by side, the message card, then the original quoted small above three escalating result cards. */
+:root{
+  --paper:#efece6;
+  --sheet:#ffffff;
+  --ink:#1b1b1f;
+  --ink-soft:#6f6d68;
+  --line:#e4e0d8;
+  --shadow:0 1px 2px rgba(30,25,15,.05),0 2px 8px rgba(30,25,15,.05);
+  --accent:#b3172c;      /* cherry red, same as the phone */
+  --accent-soft:#fbeaec;
+  --edge1:#f0b9c0; --edge2:#dd6676; --edge3:#b3172c;
+  --phone:#c41a30;
+  --phone-hi:#e2384c;
+  --phone-lo:#8a0f1f;
+  --plate:#f5ecd6;
+  --plate-ink:#2a2140;
+  --chrome:#c8ccdc;
+  --f-display:"Fraunces", "Noto Naskh Arabic", Georgia, "Times New Roman", serif;
+  --f-body:"Inter", "Noto Naskh Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius:8px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;padding-inline:16px;padding-block:32px 72px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+header{text-align:center;display:flex;flex-direction:column;gap:6px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.6rem,6.5vw,3.5rem);line-height:1.05;margin:0;letter-spacing:-.01em;font-variation-settings:"SOFT" 100,"WONK" 1,"opsz" 144}
+.tag{margin:0;color:var(--ink-soft);font-style:italic;font-size:.95rem}
+.sub-tag{margin:2px 0 0;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom, 0px) + 24px);transform:translate(-50%,12px);background:var(--ink);color:var(--paper);font-size:.88rem;font-weight:500;padding:9px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(20,10,10,.25);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.lbl{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+
+/* desk */
+.desk{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:32px;align-items:center}
+@media (max-width:820px){.desk{grid-template-columns:minmax(0,1fr)}}
+.phone-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+#phone{width:100%;max-width:380px;height:auto;touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:visible}
+#phone .hole{cursor:grab;outline:none;touch-action:none}
+#phone .hole:focus-visible + .ring, #phone .ring.hot{stroke:#ffd166;stroke-width:3}
+#phone.dragging .hole{cursor:grabbing}
+#handset{transform-box:view-box;transform-origin:210px 100px}
+#phone.ringing #handset{animation:ring .42s ease-in-out infinite}
+@keyframes ring{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-5px) rotate(-2.2deg)}75%{transform:translateY(-5px) rotate(2.2deg)}}
+.readout{font-size:.85rem;color:var(--ink-soft);min-height:1.5em;text-align:center}
+.readout b{color:var(--ink);font-weight:600}
+.sound{font:inherit;font-size:.78rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);cursor:pointer}
+
+.key{min-width:0;display:flex;flex-direction:column;gap:8px}
+.key-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.key h2{font-family:var(--f-display);font-weight:700;font-size:1.15rem;margin:0}
+.key .sub{font-style:italic;font-size:.8rem;color:var(--ink-soft)}
+.key ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:5px}
+@media (max-width:820px){.key ol{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}}
+.key button{all:unset;box-sizing:border-box;width:100%;height:100%;display:grid;grid-template-columns:1.1em 1.4em minmax(0,1fr);align-items:center;gap:5px;padding:7px 10px;border-radius:var(--radius);background:var(--sheet);box-shadow:var(--shadow);border-left:3px solid transparent;cursor:pointer;font-size:.86rem;font-weight:500;color:var(--ink);line-height:1.25;transition:border-color .15s,background .15s}
+.key button:hover{border-left-color:var(--line)}
+.key button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.key button[aria-pressed="true"]{border-left-color:var(--accent);background:var(--accent-soft)}
+.key .n{font-variant-numeric:tabular-nums;color:var(--ink-soft);font-size:.8rem}
+.key button[aria-pressed="true"] .n{color:var(--accent);font-weight:700}
+.key .op{display:inline;margin-left:6px;font-size:.62rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+@media (max-width:820px){.key .op{display:block;margin-left:0}}
+
+/* message card */
+.pad{background:var(--sheet);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:14px}
+.pad-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.seg button{font:inherit;font-size:.9rem;font-weight:600;padding:8px 16px;border:0;border-radius:6px;background:transparent;color:var(--ink-soft);cursor:pointer;transition:background .15s,color .15s}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);box-shadow:0 1px 2px rgba(30,25,15,.08)}
+.now{font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+textarea{width:100%;min-height:72px;resize:vertical;font:inherit;font-size:1.02rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.starters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.starters .lbl{margin-right:4px}
+.chip{font:inherit;font-size:.82rem;padding:4px 11px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.go{font:inherit;font-weight:700;font-size:.98rem;padding:11px 24px;border-radius:6px;border:0;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 2px 6px rgba(179,23,44,.25)}
+.go:hover{opacity:.88}
+.go:disabled{opacity:.5;cursor:progress}
+.ghost{font:inherit;font-size:.9rem;padding:9px 14px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.lang{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--ink-soft)}
+select{font:inherit;font-size:.85rem;padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--sheet);color:var(--ink)}
+.status{font-size:.88rem;color:var(--ink-soft);flex-basis:100%}
+.status:empty{display:none}
+.status.err{color:#c0392b}
+.count{font-size:.75rem;color:var(--ink-soft);margin-left:auto;font-variant-numeric:tabular-nums}
+
+/* results */
+.results{display:flex;flex-direction:column;gap:14px;scroll-margin-top:24px}
+.results-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.results-head h2{font-family:var(--f-display);font-weight:700;font-size:1.4rem;margin:0}
+.results-head .right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.orig{margin:0;padding-left:14px;border-left:2px solid var(--line);color:var(--ink-soft);font-style:italic;overflow-wrap:anywhere}
+.orig b{font-style:normal;font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;margin-right:6px}
+.ladder{display:flex;flex-direction:column;gap:12px}
+.rung{background:var(--sheet);border-radius:var(--radius);box-shadow:var(--shadow);border-left:4px solid var(--edge1);padding:16px 20px;display:flex;flex-direction:column;gap:8px}
+.r2{border-left-color:var(--edge2)}
+.r3{border-left-color:var(--edge3)}
+.rung .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.lvl{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px}
+.lvl .num{font-variant-numeric:tabular-nums}
+.lvl .hint{text-transform:none;letter-spacing:0;font-weight:400;font-style:italic}
+.ladder:lang(ar) .lvl,.ladder:lang(ja) .lvl{letter-spacing:0;font-size:.8rem}
+.ladder:lang(ar) .lvl .hint{font-style:normal}
+.rung .num{color:var(--ink-soft)} .r3 .num{color:var(--accent)}
+.copy{font:inherit;font-size:.78rem;padding:3px 10px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);cursor:pointer}
+.copy:hover{color:var(--ink)}
+.txt{margin:0;white-space:pre-line;overflow-wrap:anywhere;text-align:start;unicode-bidi:plaintext}
+.r1 .txt{font-size:1.02rem}
+.r2 .txt{font-size:1.12rem}
+.r3 .txt{font-family:var(--f-display);font-weight:500;font-size:clamp(1.3rem,3vw,1.6rem);line-height:1.35}
+@keyframes shimmer{0%,100%{opacity:.3}50%{opacity:.6}}
+.loading .txt{animation:shimmer 1.4s ease-in-out infinite}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.reveal .rung{animation:rise .45s ease-out both}
+.reveal .r2{animation-delay:.45s}
+.reveal .r3{animation-delay:.95s}
+@media (max-width:480px){.lvl .hint{display:none}}
+footer{font-size:.82rem;color:var(--ink-soft);text-align:center;font-style:italic}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Whimsify</h1>
+    <p class="tag">Same message. Different line.</p>
+    <p class="sub-tag">For every text. Even the boring ones.</p>
+  </header>
+
+  <section class="desk" aria-label="Choose a voice">
+    <div class="phone-wrap">
+      <svg id="phone" viewBox="0 0 420 400" role="group" aria-label="Rotary phone. Drag a finger hole clockwise to the metal stop, or tap a hole, to dial a voice."></svg>
+      <div class="readout" id="readout" aria-live="polite">Drag a hole to the stop, or just tap it.</div>
+      <button class="sound" id="sound" type="button" aria-pressed="true">🔔 Dial clicks on</button>
+    </div>
+    <nav class="key" aria-label="Directory of voices">
+      <div class="key-head"><h2>Directory</h2><span class="sub">Dial a number, or tap a line</span></div>
+      <ol id="key"></ol>
+    </nav>
+  </section>
+
+  <section class="pad" aria-label="Your message">
+    <div class="pad-head">
+      <div class="seg" role="group" aria-label="Mode">
+        <button type="button" id="mode-rewrite" aria-pressed="true">Rewrite my message</button>
+        <button type="button" id="mode-reply" aria-pressed="false">Reply to a message</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <label class="lbl" for="src" id="src-lbl">Your message</label>
+    <textarea id="src" dir="auto" maxlength="280" placeholder="e.g. Sorry for the late reply, I just saw this."></textarea>
+    <div class="starters" id="starters"><span class="lbl">Quick dial</span></div>
+    <div class="actions">
+      <button class="go" id="go" type="button">Whimsify</button>
+      <button class="ghost" id="stop" type="button" hidden>Hang up</button>
+      <label class="lang" for="lang">in
+        <select id="lang">
+          <option value="">the same language</option>
+          <option>English</option>
+          <option>Spanish</option>
+          <option>French</option>
+          <option>Portuguese</option>
+          <option>Italian</option>
+          <option>German</option>
+          <option>Arabic</option>
+          <option>Japanese</option>
+        </select>
+      </label>
+      <span class="count" id="count"></span>
+      <span class="status" id="status" role="status"></span>
+    </div>
+  </section>
+
+  <section class="results" id="results" aria-label="Results">
+    <div class="results-head">
+      <h2>On the line</h2>
+      <div class="right">
+        <span class="tag" id="pill"></span>
+        <button class="ghost" id="redial" type="button" hidden>↻ Redial</button>
+        <button class="ghost" id="share" type="button" hidden>Share as image</button>
+      </div>
+    </div>
+    <p class="orig" id="orig" dir="auto"></p>
+    <div class="ladder" id="ladder">
+      <article class="rung r1">
+        <div class="top"><span class="lvl"><span class="num">1</span><span id="l1">Sendable</span> <span class="hint" id="h1">· you could actually send this</span></span><button class="copy" type="button" data-k="sendable">Copy</button></div>
+        <p class="txt" id="t-sendable" dir="auto"></p>
+      </article>
+      <article class="rung r2">
+        <div class="top"><span class="lvl"><span class="num">2</span><span id="l2">Whimsified</span></span><button class="copy" type="button" data-k="whimsified">Copy</button></div>
+        <p class="txt" id="t-whimsified" dir="auto"></p>
+      </article>
+      <article class="rung r3">
+        <div class="top"><span class="lvl"><span class="num">3</span><span id="l3">Maximum whimsification</span></span><button class="copy" type="button" data-k="maximum">Copy</button></div>
+        <p class="txt" id="t-maximum" dir="auto"></p>
+      </article>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <footer id="foot">Your message is sent to Claude to be rewritten and isn't stored.</footer>
+</div>
+
+<script>
+const W = s => s.split(",").map(x => x.trim());
+const EX_INPUT = "Sorry for the late reply, I just saw this.";
+
+/* d = finger hole 1..10 (10 is the "0" hole) */
+const VOICES = [
+  {d:1, label:"1", e:"🪶", name:"Poetic",
+   ex:{sendable:"Sorry for the late reply. Your message waited for me, and I only just arrived.",
+       whimsified:"Forgive the silence. Your words sat patient as a lamp in a window until I finally looked up and saw them.",
+       maximum:"Your message has been waiting\nlike a letter in a coat I forgot I owned.\nI found it just now.\nForgive me the hours it spent alone."}},
+  {d:2, label:"2", e:"🎙️", name:"Sports commentator",
+   ex:{sendable:"Sorry for the late reply! Just saw this, and I'm back in the game.",
+       whimsified:"Sorry for the late reply! Just saw this. Late in the game, but what a comeback.",
+       maximum:"AND THEY'VE SEEN THE MESSAGE! LATE, FOLKS, VERY LATE, BUT THEY'VE SEEN IT! I HAVE NEVER WITNESSED A COMEBACK LIKE THIS! THE CROWD IS ON ITS FEET!"}},
+  {d:3, label:"3", e:"🔮", name:"Horoscope",
+   ex:{sendable:"Sorry for the late reply! The stars only just delivered your message.",
+       whimsified:"Mercury has been slowing all communication, so I only just saw this. Forgive the delay; the stars predict a much quicker reply next time.",
+       maximum:"With Mercury in full retrograde, every message this week has been traveling by the scenic route. Yours has only just arrived. The cosmos asks your forgiveness. Your lucky number is however many hours this took. Your lucky color is the blue of an unread notification."}},
+  {d:4, label:"4", e:"💌", name:"Love letter", letter:true,
+   ex:{sendable:"Dearest, forgive my late reply; I have only just seen your message.\nEver yours.",
+       whimsified:"My dearest,\nI am mortified. Your message lay unread until this very moment, and I cannot forgive myself for keeping you waiting.\nYours, most apologetically.",
+       maximum:"My dearest heart,\nYour message waited, and I did not come. I have only now seen it, and I am undone. I beg you, with all that I am, to forgive me.\nYours, eternally and belatedly.\n\nP.S. I just saw this."}},
+  {d:5, label:"5", e:"⚖️", name:"Legalese",
+   ex:{sendable:"Please be advised: I only just saw this. Apologies for the delay.",
+       whimsified:"The undersigned acknowledges receipt of your message and regrets the delay in response, said message having only now been reviewed.",
+       maximum:"NOTICE OF BELATED RESPONSE. The undersigned acknowledges receipt of your message as of this moment and tenders a full apology for the delay, notwithstanding any appearance of indifference, which is hereby expressly denied."}},
+  {d:6, label:"6", e:"⚡", name:"Mythology",
+   ex:{sendable:"Sorry for the late reply. Hermes only just delivered this.",
+       whimsified:"Your message wandered long, as Odysseus did, before it reached my eyes. Forgive the delay.",
+       maximum:"Sing, O Muse, of the message that wandered! Past sirens and storms it sailed, by fate delayed, until at last it reached the shores of my attention. I have seen it now. Let the long silence be forgiven, and let this reply sail swiftly home."}},
+  {d:7, label:"7", e:"🧘", name:"Therapy-speak",
+   ex:{sendable:"Sorry for the late reply. I'm only just making space to respond.",
+       whimsified:"I want to acknowledge the delay. I only just saw this, and I'm giving myself grace for not responding sooner.",
+       maximum:"I want to honor the space that existed between your message and my reply. I didn't see it until now, and I'm choosing not to sit in guilt about that. I'm here now, fully present, and that's what matters."}},
+  {d:8, label:"8", e:"💼", name:"Career influencer",
+   ex:{sendable:"Sorry for the late reply! Just saw this. Grateful for your patience.",
+       whimsified:"Quick update: I only just saw your message. Grateful for people who give grace in a fast-moving world.",
+       maximum:"I replied late today.\n\nAnd I want to talk about it.\n\nIn a world obsessed with instant answers, I'm learning that a thoughtful reply beats a fast one.\n\nI just saw your message.\n\nAnd I'm grateful.\n\nAgree?"}},
+  {d:9, label:"9", e:"📺", name:"Reality TV confessional",
+   ex:{sendable:"Okay, full honesty? I just saw this. Sorry for the late reply.",
+       whimsified:"Okay, so, I just saw your message. Was I ignoring it? No. Am I sorry? Yes. Moving on.",
+       maximum:"Okay, so. I just saw the message. Did I see it earlier? No. Am I sorry? Obviously. But let's be clear: I'm not here to ignore anyone. I'm here to reply. Eventually. …I said what I said."}},
+  {d:10, label:"0", e:"📜", name:"Well-Spoken", op:true,
+   ex:{sendable:"Sorry for the late reply; I just saw this.",
+       whimsified:"Apologies for the delayed response. Your message only just came to my attention.",
+       maximum:"Please forgive my late reply. Your message only now came to my attention, and I didn't want another moment to pass without responding."}}
+];
+const byD = d => VOICES.find(v => v.d === d);
+const COPIED = {1:"Copied. Let it fly.", 2:"IT'S IN THE CLIPBOARD!", 3:"Copied. The stars say send it.", 4:"Copied. Seal it with a kiss.",
+  5:"Copied. Proceed accordingly.", 6:"Copied. Go forth.", 7:"Copied. You've got this.", 8:"Copied. Ship it.",
+  9:"Copied. Send it. No regrets.", 10:"Copied. Ready to send."};
+const LEVEL_LABELS = {
+  en:{std:["Sendable","Whimsified","Maximum whimsification"], letter:["Note","Letter","Declaration"], op:["Polished","Articulate","Eloquent"], hint:"· you could actually send this"},
+  es:{std:["Para enviar","Con chispa","Chispa total"], letter:["Nota","Carta","Declaración"], op:["Pulido","Articulado","Elocuente"], hint:"· podrías enviarlo tal cual"},
+  fr:{std:["Prêt à envoyer","Fantaisiste","Fantaisie totale"], letter:["Billet","Lettre","Déclaration"], op:["Soigné","Raffiné","Éloquent"], hint:"· tu pourrais l'envoyer tel quel"},
+  pt:{std:["Para enviar","Com fantasia","Fantasia total"], letter:["Bilhete","Carta","Declaração"], op:["Polido","Articulado","Eloquente"], hint:"· você pode enviar assim mesmo"},
+  it:{std:["Da inviare","Fantasioso","Fantasia totale"], letter:["Biglietto","Lettera","Dichiarazione"], op:["Curato","Articolato","Eloquente"], hint:"· potresti inviarlo così"},
+  de:{std:["Zum Verschicken","Verspielt","Maximal verspielt"], letter:["Notiz","Brief","Liebeserklärung"], op:["Gepflegt","Gewandt","Eloquent"], hint:"· so könntest du es verschicken"},
+  ar:{std:["جاهز للإرسال","بلمسة خيال","خيال بلا حدود"], letter:["رسالة قصيرة","رسالة","إعلان حب"], op:["مصقول","فصيح","بليغ"], hint:"· يمكنك إرساله كما هو"},
+  ja:{std:["そのまま送れる","ちょっと遊び心","遊び心全開"], letter:["一筆","手紙","愛の告白"], op:["整った文","洗練された文","雄弁な文"], hint:"· そのまま送れます"}
+};
+const LANG_CODES = {English:"en", Spanish:"es", French:"fr", Portuguese:"pt", Italian:"it", German:"de", Arabic:"ar", Japanese:"ja"};
+const levelLang = r => {
+  const c = String((r && r.language) || "en").toLowerCase().slice(0, 2);
+  return LEVEL_LABELS[c] ? c : "en";
+};
+const levelNames = (v, code) => {
+  const t = LEVEL_LABELS[code || "en"];
+  return v.letter ? t.letter : v.op ? t.op : t.std;
+};
+/* ===== SETUP: paste your Worker's address between the quotes (see the launch guide) ===== */
+const WORKER_URL = "PASTE-YOUR-WORKER-ADDRESS-HERE";
+const SITE_URL = "whimsify.app";   // shown on the share image
+const ONLINE = /^https:\/\//.test(WORKER_URL);
+/* anonymous usage counts for your stats page: no message text is ever sent here */
+function track(type, extra){
+  if (!ONLINE) return;
+  try{ fetch(WORKER_URL.replace(/\/+$/, "") + "/event", {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain"}, body: JSON.stringify({type, ...extra})}).catch(() => {}); }catch{}
+}
+
+const STARTERS = [
+  ["Grab bread", "Can you get me bread from the store?"],
+  ["Didn't see this", "Sorry, I didn't see this."],
+  ["Running late", "Sorry, I'm running 10 minutes late."],
+  ["Can't make it", "I can't make it tonight. I'm exhausted."],
+  ["Birthday", "Happy birthday! Hope you have a great day."],
+  ["Thank you", "Thanks so much for your help today."],
+  ["Leftovers", "Who ate my leftovers?"],
+  ["Miss you", "I miss you but I don't want to text you because I'm afraid you'll think I'm needy."]
+];
+
+const $ = id => document.getElementById(id);
+let current = 6, ctl = null, blocked = false, mode = "rewrite";
+let results = null;   // {src, d, sendable, whimsified, maximum, example, mode}
+
+/* ---------- directory ---------- */
+function renderKey(){
+  const ol = $("key"); ol.innerHTML = "";
+  for (const v of VOICES){
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button"; b.id = "key-" + v.d;
+    b.setAttribute("aria-pressed", v.d === current ? "true" : "false");
+    b.setAttribute("aria-label", "Line " + v.label + ", " + v.name);
+    const n = document.createElement("span"); n.className = "n"; n.textContent = v.label;
+    const e = document.createElement("span"); e.textContent = v.e; e.setAttribute("aria-hidden", "true");
+    const t = document.createElement("span"); t.textContent = v.name;
+    if (v.op){ const o = document.createElement("span"); o.className = "op"; o.textContent = "Operator"; t.append(o); }
+    b.append(n, e, t);
+    b.onclick = () => { choose(v.d); track("dial", {voice:v.d}); };
+    li.append(b); ol.append(li);
+  }
+}
+function choose(d){
+  current = d; renderKey();
+  const v = byD(d);
+  $("now").textContent = "Line " + v.label + " · " + v.e + " " + v.name;
+  setCard(v.label, v.op ? "Operator" : v.name);
+  $("readout").innerHTML = "Connected to <b>" + v.label + " · " + v.name + "</b>";
+  if (!results || results.example) showExample(d);
+}
+function showExample(d){
+  const v = byD(d);
+  results = {src:EX_INPUT, d, mode:"rewrite", example:true, ...v.ex};
+  renderResults(false);
+}
+
+/* ---------- rotary phone ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const CX = 210, CY = 248, R_PLATE = 114, R_WHEEL = 108, R_HOLE_C = 79, R_HOLE = 16.5, R_CARD = 45;
+const START = -25, STEP = 28, STOP = 52;
+const holeAng = d => START - STEP * (d - 1);
+const travelFor = d => STOP - holeAng(d);
+const rad = a => a * Math.PI / 180;
+const svg = $("phone");
+let wheel, rings = [], cardNum, cardName;
+function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).append(e); return e; }
+
+function sticker(parent, x, y, emoji, rot, r){
+  r = r || 15;
+  const g = el("g", {transform:`rotate(${rot} ${x} ${y})`, filter:"url(#stickerShadow)", "pointer-events":"none", "aria-hidden":"true"}, parent);
+  el("circle", {cx:x, cy:y, r, fill:"#ffffff"}, g);
+  const t = el("text", {x, y: y + r * 0.36, "text-anchor":"middle", "font-size": String(r * 1.1)}, g);
+  t.textContent = emoji;
+}
+function buildPhone(){
+  const defs = el("defs", {});
+  const bg = el("linearGradient", {id:"bodyGrad", x1:"0", y1:"0", x2:"0", y2:"1"}, defs);
+  el("stop", {offset:"0", "stop-color":"var(--phone-hi)"}, bg);
+  el("stop", {offset:"1", "stop-color":"var(--phone-lo)"}, bg);
+  const cg = el("linearGradient", {id:"chromeGrad", x1:"0", y1:"0", x2:"1", y2:"1"}, defs);
+  el("stop", {offset:"0", "stop-color":"#f2f3f8"}, cg);
+  el("stop", {offset:".5", "stop-color":"var(--chrome)"}, cg);
+  el("stop", {offset:"1", "stop-color":"#8d91a6"}, cg);
+  const sf = el("filter", {id:"stickerShadow", x:"-30%", y:"-30%", width:"160%", height:"160%"}, defs);
+  el("feDropShadow", {dx:"0", dy:"1.2", stdDeviation:"1.2", "flood-color":"#3a0008", "flood-opacity":".35"}, sf);
+  const mask = el("mask", {id:"wheelMask"}, defs);
+  el("circle", {cx:CX, cy:CY, r:R_WHEEL, fill:"#fff"}, mask);
+  el("circle", {cx:CX, cy:CY, r:R_CARD + 6, fill:"#000"}, mask);
+  for (let d = 1; d <= 10; d++){
+    const a = rad(holeAng(d));
+    el("circle", {cx:CX + R_HOLE_C * Math.cos(a), cy:CY + R_HOLE_C * Math.sin(a), r:R_HOLE, fill:"#000"}, mask);
+  }
+  el("ellipse", {cx:210, cy:386, rx:170, ry:10, fill:"rgba(15,10,40,.18)"});
+  el("path", {d:"M100 150 Q108 118 150 116 L270 116 Q312 118 320 150 L372 346 Q378 378 346 380 L74 380 Q42 378 48 346 Z", fill:"url(#bodyGrad)"});
+  el("path", {d:"M112 150 Q118 128 152 127 L268 127 Q302 128 308 150", fill:"none", stroke:"rgba(255,255,255,.18)", "stroke-width":"3", "stroke-linecap":"round"});
+  el("rect", {x:112, y:92, width:26, height:34, rx:8, fill:"var(--phone-lo)"});
+  el("rect", {x:282, y:92, width:26, height:34, rx:8, fill:"var(--phone-lo)"});
+  const hs = el("g", {id:"handset"});
+  el("path", {d:"M44 96 Q40 50 86 46 L334 46 Q380 50 376 96 Q374 116 348 114 L332 114 Q320 90 300 82 L120 82 Q100 90 88 114 L72 114 Q46 116 44 96 Z", fill:"url(#bodyGrad)"}, hs);
+  el("path", {d:"M90 56 L330 56", stroke:"rgba(255,255,255,.22)", "stroke-width":"4", "stroke-linecap":"round"}, hs);
+  sticker(hs, 80, 78, "🔮", -12);
+  sticker(hs, 340, 78, "🎙️", 10);
+  const lab = el("g", {transform:"rotate(-2 210 66)", filter:"url(#stickerShadow)"}, hs);
+  el("rect", {x:150, y:57, width:120, height:19, rx:3, fill:"#fdf6e6"}, lab);
+  const lt = el("text", {x:210, y:70.5, "text-anchor":"middle", "font-family":"Inter, system-ui, sans-serif", "font-size":"9", "font-weight":"700", "letter-spacing":"2", fill:"#b3172c"}, lab);
+  lt.textContent = "WHIMSY HOTLINE";
+  el("path", {d:"M48 330 q-14 6 -6 16 q8 10 -6 16 q-14 6 -6 16", fill:"none", stroke:"var(--phone-lo)", "stroke-width":"5", "stroke-linecap":"round"});
+  sticker(svg, 86, 352, "⚖️", -9);
+  sticker(svg, 336, 350, "⚡", 12);
+  sticker(svg, 297, 146, "💌", 8, 12);
+
+  el("circle", {cx:CX, cy:CY, r:R_PLATE + 4, fill:"url(#chromeGrad)"});
+  el("circle", {cx:CX, cy:CY, r:R_PLATE, fill:"var(--plate)"});
+  for (let d = 1; d <= 10; d++){
+    const a = rad(holeAng(d)), x = CX + R_HOLE_C * Math.cos(a), y = CY + R_HOLE_C * Math.sin(a);
+    const t = el("text", {x, y: y + 6, "text-anchor":"middle", "font-family":"Inter, system-ui, sans-serif", "font-size":"17", "font-weight":"600", fill:"var(--plate-ink)"});
+    t.textContent = d === 10 ? "0" : String(d);
+  }
+  wheel = el("g", {id:"wheel"});
+  el("circle", {cx:CX, cy:CY, r:R_WHEEL, fill:"var(--phone)", mask:"url(#wheelMask)", opacity:".94"}, wheel);
+  el("circle", {cx:CX, cy:CY, r:R_WHEEL - 1, fill:"none", stroke:"rgba(255,255,255,.25)", "stroke-width":"2"}, wheel);
+  for (let d = 1; d <= 10; d++){
+    const a = rad(holeAng(d)), x = CX + R_HOLE_C * Math.cos(a), y = CY + R_HOLE_C * Math.sin(a);
+    const v = byD(d);
+    const hit = el("circle", {cx:x, cy:y, r:R_HOLE + 3, fill:"transparent", class:"hole", tabindex:"0", role:"button",
+      "aria-label":"Dial " + v.label + ", " + v.name}, wheel);
+    rings[d] = el("circle", {cx:x, cy:y, r:R_HOLE, fill:"none", stroke:"rgba(255,255,255,.35)", "stroke-width":"1.5", class:"ring", "pointer-events":"none"}, wheel);
+    hit.addEventListener("pointerdown", ev => startDrag(ev, d));
+    hit.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); autoDial(d); } });
+  }
+  const sa = rad(STOP), sx = CX + (R_WHEEL - 6) * Math.cos(sa), sy = CY + (R_WHEEL - 6) * Math.sin(sa);
+  const fs = el("g", {transform:`rotate(${STOP + 90} ${sx} ${sy})`});
+  el("path", {d:`M${sx - 5} ${sy - 20} Q${sx} ${sy - 26} ${sx + 5} ${sy - 20} L${sx + 4} ${sy + 12} Q${sx} ${sy + 16} ${sx - 4} ${sy + 12} Z`, fill:"url(#chromeGrad)", stroke:"#6f7388", "stroke-width":".8"}, fs);
+  el("circle", {cx:CX, cy:CY, r:R_CARD + 3, fill:"url(#chromeGrad)"});
+  el("circle", {cx:CX, cy:CY, r:R_CARD, fill:"var(--plate)"});
+  el("line", {x1:CX - 32, y1:CY - 14, x2:CX + 32, y2:CY - 14, stroke:"rgba(42,33,64,.25)", "stroke-width":".8"});
+  el("line", {x1:CX - 32, y1:CY + 18, x2:CX + 32, y2:CY + 18, stroke:"rgba(42,33,64,.25)", "stroke-width":".8"});
+  const top = el("text", {x:CX, y:CY - 20, "text-anchor":"middle", "font-family":"Inter, system-ui, sans-serif", "font-size":"7", "letter-spacing":"1.6", fill:"#7a6f8f"}); top.textContent = "WHIMSIFY";
+  cardNum = el("text", {x:CX, y:CY + 11, "text-anchor":"middle", "font-family":"Fraunces, Georgia, serif", "font-weight":"800", "font-size":"24", fill:"var(--plate-ink)"});
+  cardName = el("text", {x:CX, y:CY + 30, "text-anchor":"middle", "font-family":"Inter, system-ui, sans-serif", "font-size":"8.5", "font-weight":"600", fill:"var(--plate-ink)"});
+}
+function setCard(num, name){ cardNum.textContent = num; cardName.textContent = name; cardName.setAttribute("font-size", name.length > 18 ? "6.2" : name.length > 13 ? "7" : "8.5"); }
+function setRot(deg){ wheel.setAttribute("transform", `rotate(${deg} ${CX} ${CY})`); }
+
+/* sound */
+let audio = null, soundOn = true;
+function tick(gain){
+  if (!soundOn) return;
+  try{
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audio.currentTime, o = audio.createOscillator(), g = audio.createGain();
+    o.type = "square"; o.frequency.value = 1900;
+    g.gain.setValueAtTime(gain || .05, t); g.gain.exponentialRampToValueAtTime(.0001, t + .03);
+    o.connect(g).connect(audio.destination); o.start(t); o.stop(t + .035);
+  }catch{}
+}
+function bell(){
+  if (!soundOn) return;
+  try{
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = audio.currentTime;
+    for (let i = 0; i < 6; i++){
+      const t = t0 + i * .05, o = audio.createOscillator(), g = audio.createGain();
+      o.type = "sine"; o.frequency.value = i % 2 ? 1180 : 1400;
+      g.gain.setValueAtTime(.035, t); g.gain.exponentialRampToValueAtTime(.0001, t + .05);
+      o.connect(g).connect(audio.destination); o.start(t); o.stop(t + .06);
+    }
+  }catch{}
+}
+$("sound").onclick = () => {
+  soundOn = !soundOn;
+  $("sound").setAttribute("aria-pressed", String(soundOn));
+  $("sound").textContent = soundOn ? "🔔 Dial clicks on" : "🔕 Dial clicks off";
+};
+
+/* drag + animation */
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let busy = false, drag = null;
+function svgAngle(ev){
+  const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  return Math.atan2(p.y - CY, p.x - CX) * 180 / Math.PI;
+}
+function startDrag(ev, d){
+  if (busy) return;
+  ev.preventDefault();
+  drag = {d, last: svgAngle(ev), travel: 0, max: travelFor(d), moved: false};
+  try{ svg.setPointerCapture(ev.pointerId); }catch{}
+  svg.classList.add("dragging"); rings[d].classList.add("hot");
+}
+svg.addEventListener("pointermove", ev => {
+  if (!drag) return;
+  const a = svgAngle(ev);
+  let delta = a - drag.last; if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
+  drag.last = a;
+  drag.travel = Math.max(0, Math.min(drag.max, drag.travel + delta));
+  if (drag.travel > 3) drag.moved = true;
+  setRot(drag.travel);
+});
+function endDrag(){
+  if (!drag) return;
+  const {d, travel, max, moved} = drag; drag = null;
+  svg.classList.remove("dragging"); rings[d].classList.remove("hot");
+  if (!moved){ autoDial(d); return; }
+  const reached = travel >= max - 8;
+  returnWheel(travel, () => { if (reached) connect(d); else $("readout").textContent = "Pull it all the way to the metal stop."; }, reached);
+}
+svg.addEventListener("pointerup", endDrag);
+svg.addEventListener("pointercancel", endDrag);
+function animate(from, to, ms, onStep, done){
+  if (reduce){ onStep(to); done && done(); return; }
+  const t0 = performance.now();
+  const ease = from < to ? (t => 1 - Math.pow(1 - t, 2)) : (t => t);
+  (function f(now){
+    const t = Math.min(1, (now - t0) / ms);
+    onStep(from + (to - from) * ease(t));
+    t < 1 ? requestAnimationFrame(f) : done && done();
+  })(t0);
+}
+function returnWheel(from, done, clicks){
+  busy = true;
+  const base = STOP - holeAng(1);
+  let lastStep = Math.floor((from - base) / STEP);
+  animate(from, 0, Math.max(160, from * 2.6), deg => {
+    setRot(deg);
+    if (clicks){ const s = Math.floor((deg - base) / STEP); if (s < lastStep && deg > 0){ tick(); lastStep = s; } }
+  }, () => { busy = false; done && done(); });
+}
+function autoDial(d){
+  if (busy) return;
+  busy = true; rings[d].classList.add("hot");
+  const max = travelFor(d);
+  animate(0, max, Math.max(220, max * 1.7), setRot, () => {
+    rings[d].classList.remove("hot");
+    returnWheel(max, () => connect(d), true);
+  });
+}
+function connect(d){ choose(d); tick(.03); track("dial", {voice:d}); }
+
+/* ---------- mode, starters, language ---------- */
+function setMode(m){
+  mode = m;
+  $("mode-rewrite").setAttribute("aria-pressed", String(m === "rewrite"));
+  $("mode-reply").setAttribute("aria-pressed", String(m === "reply"));
+  $("src-lbl").textContent = m === "rewrite" ? "Your message" : "The message you received";
+  $("src").placeholder = m === "rewrite" ? "e.g. Sorry for the late reply, I just saw this." : "e.g. Are you still coming tonight?";
+}
+$("mode-rewrite").onclick = () => setMode("rewrite");
+$("mode-reply").onclick = () => setMode("reply");
+for (const [label, text] of STARTERS){
+  const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = label;
+  b.onclick = () => { setMode("rewrite"); $("src").value = text; updateCount(); $("src").focus(); };
+  $("starters").append(b);
+}
+try{ const saved = localStorage.getItem("whimsify-lang"); if (saved !== null) $("lang").value = saved; }catch{}
+$("lang").onchange = () => { try{ localStorage.setItem("whimsify-lang", $("lang").value); }catch{} };
+
+/* ---------- results ---------- */
+function renderResults(animateIn){
+  const r = results, v = byD(r.d);
+  $("orig").innerHTML = "";
+  const b = document.createElement("b"); b.textContent = r.mode === "reply" ? "They wrote" : "You wrote";
+  $("orig").append(b, document.createTextNode("“" + r.src + "”"));
+  $("t-sendable").textContent = r.sendable || "";
+  $("t-whimsified").textContent = r.whimsified || "";
+  $("t-maximum").textContent = r.maximum || "";
+  $("pill").textContent = (r.example ? "Example · " : "") + "Line " + v.label + " · " + v.name;
+  const code = levelLang(r);
+  const L = levelNames(v, code);
+  $("l1").textContent = L[0]; $("l2").textContent = L[1]; $("l3").textContent = L[2];
+  $("h1").textContent = LEVEL_LABELS[code].hint;
+  $("ladder").lang = code;
+  $("h1").hidden = !!(v.letter || v.op);
+  $("redial").hidden = !(ONLINE && !r.example);
+  $("share").hidden = !ONLINE;
+  const lad = $("ladder");
+  lad.classList.remove("reveal");
+  if (animateIn){ void lad.offsetWidth; lad.classList.add("reveal"); }
+}
+function setStatus(msg, err){ $("status").textContent = msg; $("status").classList.toggle("err", !!err); }
+const ERR = {
+  daily_person:"You've used all of today's calls on the hotline. The lines reopen tomorrow.",
+  daily_total:"The hotline is swamped today. Please call again tomorrow.",
+  out_of_credits:"The hotline is taking a short break. Please try again later.",
+  busy:"All lines are busy. Try again in a moment.",
+  invalid_json:"The line crackled. Press Whimsify again.",
+  bad_request:"Write something first, even one line.",
+  forbidden:"This line isn't connected. Please use the official Whimsify page.",
+  not_configured:"The hotline isn't connected yet.",
+  upstream:"The line dropped. Try again in a moment.",
+  network:"The line dropped. Check your connection and try again."
+};
+
+async function whimsify(again){
+  const text = again && results && !results.example ? results.src : $("src").value.trim();
+  const runMode = again && results && !results.example ? results.mode : mode;
+  if (!text){ setStatus("Write something first, even one line.", true); $("src").focus(); return; }
+  if (!ONLINE){ setStatus("The hotline isn't connected yet. Dial any line to see an example.", true); return; }
+  const v = byD(again && results && !results.example ? results.d : current);
+  ctl = new AbortController();
+  $("redial").disabled = true;
+  $("go").disabled = true; $("stop").hidden = false;
+  $("ladder").classList.remove("reveal"); $("ladder").classList.add("loading");
+  svg.classList.add("ringing");
+  setStatus("Ringing line " + v.label + "…");
+  try{
+    const prev = again && results && !results.example ? {sendable:results.sendable, whimsified:results.whimsified, maximum:results.maximum} : null;
+    let res;
+    try{
+      res = await fetch(WORKER_URL, {method:"POST", headers:{"Content-Type":"application/json"}, signal: ctl.signal,
+        body: JSON.stringify({text, voice:v.d, lang:$("lang").value, mode:runMode, prev})});
+    }catch(err){ throw {code: err && err.name === "AbortError" ? "cancelled" : "network"}; }
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || data.error) throw {code: (data && data.error) || "upstream"};
+    if (!data.maximum) throw {code:"invalid_json"};
+    results = {src:text, d:v.d, mode:runMode, example:false,
+      sendable:String(data.sendable || ""), whimsified:String(data.whimsified || ""), maximum:String(data.maximum || ""),
+      language: LANG_CODES[$("lang").value] || String(data.language || "en")};
+    $("ladder").classList.remove("loading");
+    renderResults(true);
+    bell();
+    setStatus("");
+    $("results").scrollIntoView({behavior: reduce ? "auto" : "smooth", block:"start"});
+  }catch(e){
+    if (e && e.code === "cancelled") setStatus("Hung up.");
+    else setStatus(ERR[e && e.code] || "The line dropped. Try again in a moment.", true);
+  }finally{
+    $("ladder").classList.remove("loading");
+    svg.classList.remove("ringing");
+    $("go").disabled = blocked; $("redial").disabled = blocked; $("stop").hidden = true; ctl = null;
+  }
+}
+$("go").onclick = () => whimsify(false);
+$("redial").onclick = () => whimsify(true);
+$("stop").onclick = () => ctl?.abort();
+const updateCount = () => $("count").textContent = $("src").value.length + " / 280";
+$("src").addEventListener("input", updateCount);
+$("src").addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") whimsify(false); });
+let toastTimer = null;
+function showToast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+$("ladder").addEventListener("click", async e => {
+  const b = e.target.closest(".copy"); if (!b || !results) return;
+  const t = results[b.dataset.k] || "";
+  track("copy", {voice:results.d, level:b.dataset.k, example:!!results.example});
+  try{ await navigator.clipboard.writeText(t); b.textContent = "Copied"; showToast(COPIED[results.d] || "Copied."); }
+  catch{ const p = b.closest(".rung").querySelector(".txt"); const r = document.createRange(); r.selectNodeContents(p); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected"; }
+  setTimeout(() => b.textContent = "Copy", 1400);
+});
+
+/* ---------- share card ---------- */
+function wrap(ctx, text, maxW){
+  const out = [];
+  for (const para of text.split("\n")){
+    if (!para.trim()){ out.push(""); continue; }
+    let line = "";
+    for (const word of para.split(/\s+/)){
+      const test = line ? line + " " + word : word;
+      if (ctx.measureText(test).width > maxW && line){ out.push(line); line = word; } else line = test;
+    }
+    out.push(line);
+  }
+  return out;
+}
+async function makeCard(){
+  try{ await document.fonts.ready; }catch{}
+  const r = results, v = byD(r.d);
+  const S = 1080, c = document.createElement("canvas"); c.width = S; c.height = S;
+  const x = c.getContext("2d");
+  x.fillStyle = "#efece6"; x.fillRect(0, 0, S, S);
+  const pad = 80, cardX = pad, cardY = 150, cardW = S - pad * 2, cardH = S - 150 - 170;
+  x.fillStyle = "rgba(30,25,15,.06)"; x.fillRect(cardX + 2, cardY + 6, cardW, cardH);
+  x.fillStyle = "#ffffff"; x.fillRect(cardX, cardY, cardW, cardH);
+  x.fillStyle = "#b3172c"; x.fillRect(cardX, cardY, 10, cardH);
+  x.fillStyle = "#1b1b1f"; x.font = "800 64px Fraunces, Georgia, serif"; x.textAlign = "center";
+  x.fillText("Whimsify", S / 2, 100);
+  x.textAlign = "left";
+  const inner = cardX + 60, innerW = cardW - 110;
+  x.fillStyle = "#6f6d68"; x.font = "600 22px Inter, system-ui, sans-serif";
+  x.fillText((r.mode === "reply" ? "THEY WROTE" : "I MEANT TO SAY").split("").join(String.fromCharCode(8202)), inner, cardY + 70);
+  x.font = "italic 30px Inter, system-ui, sans-serif";
+  let y = cardY + 115;
+  const rtl = t => /[\u0590-\u08FF]/.test(t);
+  const put = (t, isR) => { x.direction = isR ? "rtl" : "ltr"; x.textAlign = isR ? "right" : "left"; };
+  const srcR = rtl(r.src); put(r.src, srcR);
+  for (const l of wrap(x, srcR ? "«" + r.src + "»" : "“" + r.src + "”", innerW).slice(0, 3)){ x.fillText(l, srcR ? inner + innerW : inner, y); y += 40; }
+  put("", false);
+  y += 20;
+  x.fillStyle = "#e4e0d8"; x.fillRect(inner, y, innerW, 2); y += 60;
+  x.fillStyle = "#b3172c"; x.font = "600 22px Inter, system-ui, sans-serif";
+  x.fillText(("BUT SAID IT LIKE · " + v.name.toUpperCase()), inner, y); y += 30;
+  let size = 46, lines;
+  for (;;){
+    x.font = `600 ${size}px Fraunces, 'Noto Naskh Arabic', Georgia, serif`;
+    lines = wrap(x, r.maximum, innerW);
+    if (y + lines.length * size * 1.3 < cardY + cardH - 50 || size <= 24) break;
+    size -= 2;
+  }
+  x.fillStyle = "#1b1b1f";
+  const maxR = rtl(r.maximum); put(r.maximum, maxR);
+  for (const l of lines){ y += size * 1.3; x.fillText(l, maxR ? inner + innerW : inner, y); }
+  put("", false);
+  x.fillStyle = "#6f6d68"; x.font = "500 24px Inter, system-ui, sans-serif"; x.textAlign = "center";
+  x.fillText(SITE_URL ? "Dial line " + v.label + " at " + SITE_URL : "Dial line " + v.label + " on Whimsify", S / 2, S - 80);
+  return await new Promise(res => c.toBlob(res, "image/png"));
+}
+$("share").onclick = async () => {
+  if (!results) return;
+  track("share", {voice:results.d});
+  const btn = $("share"); btn.disabled = true;
+  try{
+    const blob = await makeCard();
+    const v = byD(results.d);
+    const name = "whimsify-" + v.name.toLowerCase().replace(/[^a-z]+/g, "-") + ".png";
+    const file = new File([blob], name, {type:"image/png"});
+    if (navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:"Whimsify"}); return; }catch(err){ if (err && err.name === "AbortError") return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = name;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }finally{ btn.disabled = false; }
+};
+
+/* ---------- boot ---------- */
+buildPhone(); setRot(0); setMode("rewrite");
+$("src").value = EX_INPUT; updateCount();
+choose(6);
+$("readout").textContent = "Drag a hole to the stop, or just tap it.";
+$("share").hidden = !ONLINE;
+</script>
+
+</body>
+</html>
