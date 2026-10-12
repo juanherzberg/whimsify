@@ -17,6 +17,11 @@
 <meta name="theme-color" content="#efece6">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Whimsify">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
@@ -93,9 +98,10 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.6rem,6.5vw,3.5
 /* message card */
 .pad{background:var(--sheet);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:14px}
 .pad-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg button{font:inherit;font-size:.82rem;font-weight:500;padding:6px 12px;border:0;background:transparent;color:var(--ink-soft);cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg{display:inline-flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.seg button{font:inherit;font-size:.9rem;font-weight:600;padding:8px 16px;border:0;border-radius:6px;background:transparent;color:var(--ink-soft);cursor:pointer;transition:background .15s,color .15s}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);box-shadow:0 1px 2px rgba(30,25,15,.08)}
 .now{font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
 textarea{width:100%;min-height:72px;resize:vertical;font:inherit;font-size:1.02rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
 textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -104,7 +110,7 @@ textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px sol
 .chip{font:inherit;font-size:.82rem;padding:4px 11px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
 .chip:hover{border-color:var(--accent);color:var(--accent)}
 .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.go{font:inherit;font-weight:600;font-size:.95rem;padding:10px 20px;border-radius:6px;border:0;background:var(--ink);color:var(--paper);cursor:pointer}
+.go{font:inherit;font-weight:700;font-size:.98rem;padding:11px 24px;border-radius:6px;border:0;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 2px 6px rgba(179,23,44,.25)}
 .go:hover{opacity:.88}
 .go:disabled{opacity:.5;cursor:progress}
 .ghost{font:inherit;font-size:.9rem;padding:9px 14px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
@@ -130,6 +136,8 @@ select{font:inherit;font-size:.85rem;padding:6px 8px;border-radius:6px;border:1p
 .lvl{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px}
 .lvl .num{font-variant-numeric:tabular-nums}
 .lvl .hint{text-transform:none;letter-spacing:0;font-weight:400;font-style:italic}
+.ladder:lang(ar) .lvl,.ladder:lang(ja) .lvl{letter-spacing:0;font-size:.8rem}
+.ladder:lang(ar) .lvl .hint{font-style:normal}
 .rung .num{color:var(--ink-soft)} .r3 .num{color:var(--accent)}
 .copy{font:inherit;font-size:.78rem;padding:3px 10px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);cursor:pointer}
 .copy:hover{color:var(--ink)}
@@ -178,7 +186,7 @@ footer{font-size:.82rem;color:var(--ink-soft);text-align:center;font-style:itali
       <span class="now" id="now"></span>
     </div>
     <label class="lbl" for="src" id="src-lbl">Your message</label>
-    <textarea id="src" dir="auto" maxlength="280" placeholder="e.g. Sorry for the late reply, I just saw this."></textarea>
+    <textarea id="src" dir="auto" maxlength="280" placeholder="e.g. Can you get me bread from the store?"></textarea>
     <div class="starters" id="starters"><span class="lbl">Quick dial</span></div>
     <div class="actions">
       <button class="go" id="go" type="button">Whimsify</button>
@@ -233,62 +241,122 @@ footer{font-size:.82rem;color:var(--ink-soft);text-align:center;font-style:itali
 
 <script>
 const W = s => s.split(",").map(x => x.trim());
-const EX_INPUT = "Sorry for the late reply, I just saw this.";
+/* ===== Opening example: switch EXAMPLE_SET to "lateReply" to bring back the Mythology / late-reply opener ===== */
+const EXAMPLE_SETS = {
+  bread: {input:"Can you get me bread from the store?", line:4, byVoice:{
+    1:{sendable:"Could you bring me bread from the store? Something simple, made precious by being carried home.",
+       whimsified:"If you pass the store, bring me bread, that small warm proof the world still feeds us.",
+       maximum:"Bring me bread from the store,\nthe plainest thing,\nflour and water and time,\nand somehow, in your hands,\nit will taste like being remembered."},
+    2:{sendable:"Quick play call: can you grab bread from the store?",
+       whimsified:"And here's the play: you head to the store, you grab the bread, you bring it home. Can you make it happen?",
+       maximum:"IT'S A BREAD RUN, FOLKS! THE STORE IS WIDE OPEN! ALL THEY NEED IS THE BREAD AND A CLEAN EXIT! THIS COULD BE THE PLAY OF THE YEAR! GO, GO, GO!"},
+    3:{sendable:"Can you grab bread from the store? The stars say it's a good moment for errands.",
+       whimsified:"The stars favor a short trip to the store, especially one that ends with bread. Could you pick some up?",
+       maximum:"With Venus smiling on all acts of kindness, the cosmos has chosen you for a sacred errand: bread, from the store. Accept this mission and good fortune follows. Decline, and Mercury will hear of it."},
+    4:{sendable:"My dearest,\n\nWould you be so kind as to fetch me bread from the store? I should be most grateful for your trouble.\n\nYours ever,\nA grateful heart",
+       whimsified:"My darling,\n\nI hardly dare impose upon your goodness, yet I find I must ask it: would you fetch me bread from the store? Rest assured, no other errand would I trust to any hand but yours, and no loaf shall be so welcome as the one you carry home.\n\nYours devotedly,\nYour grateful admirer",
+       maximum:"My dearest heart,\n\nEvery hour without you is an eternity, and every hour without bread is somehow worse. I implore thee: go forth to the store, and come home to me bearing a loaf.\n\nYours, hungrily and forever,\nA devoted heart\n\nP.S. Bread."},
+    5:{sendable:"Please be advised: I'm requesting bread from the store, quantity at your discretion.",
+       whimsified:"The undersigned respectfully requests that you procure bread from the store, said bread to be delivered to the undersigned at your earliest convenience.",
+       maximum:"REQUEST FOR PROVISIONS. WHEREAS the undersigned is in need of bread; and WHEREAS the store is in possession of bread; NOW, THEREFORE, the undersigned hereby requests that you procure said bread, type and quantity to be determined at your sole discretion. No substitutes shall be accepted."},
+    6:{sendable:"Can you get me bread from the store? A small quest, but a noble one.",
+       whimsified:"A quest awaits you, brave one: venture to the store and return bearing bread.",
+       maximum:"Hear me, champion! The gods have set before you a quest of grain and glory: to the store you must go, and from its shelves claim the sacred loaf. Return victorious, and Demeter herself will know your name."},
+    7:{sendable:"Could you get me bread from the store? Only if you have the capacity.",
+       whimsified:"I'd love some support: could you pick up bread from the store? No pressure if it doesn't feel aligned.",
+       maximum:"I'm practicing asking for what I need, so here it is: I need bread from the store. I want to honor your boundaries, so please only say yes if it feels right for you. Either way, thank you for holding space for my request."},
+    8:{sendable:"Can you grab bread from the store? Small asks, big impact.",
+       whimsified:"Quick ask: could you pick up bread from the store? Great teams support each other in the small moments.",
+       maximum:"I'm asking for bread.\n\nJust bread. From the store.\n\nAnd it reminded me: leadership is knowing when to delegate.\n\nThe best leaders don't do everything themselves.\n\nThey build trust.\n\nSo: can you get me bread from the store?"},
+    9:{sendable:"Okay, honest question: can you get me bread from the store?",
+       whimsified:"Okay, so. Bread. From the store. Can you get it? Is it a big ask? No. Do I need it? Yes.",
+       maximum:"Okay, so. I need bread. Am I going to get it myself? No. That's where you come in. Let's be clear: this isn't a favor. It's a collaboration. …Bread. From the store. I said what I said."},
+    10:{sendable:"Could you pick up some bread from the store?",
+       whimsified:"Would you mind picking up bread from the store? I'd really appreciate it.",
+       maximum:"Would you be kind enough to pick up some bread from the store? I'd be very grateful for your help."}
+  }},
+  lateReply: {input:"Sorry for the late reply, I just saw this.", line:6, byVoice:{
+    1:{sendable:"Sorry for the late reply. Your message waited for me, and I only just arrived.",
+       whimsified:"Forgive the silence. Your words sat patient as a lamp in a window until I finally looked up and saw them.",
+       maximum:"Your message has been waiting\nlike a letter in a coat I forgot I owned.\nI found it just now.\nForgive me the hours it spent alone."},
+    2:{sendable:"Sorry for the late reply! Just saw this, and I'm back in the game.",
+       whimsified:"Sorry for the late reply! Just saw this. Late in the game, but what a comeback.",
+       maximum:"AND THEY'VE SEEN THE MESSAGE! LATE, FOLKS, VERY LATE, BUT THEY'VE SEEN IT! I HAVE NEVER WITNESSED A COMEBACK LIKE THIS! THE CROWD IS ON ITS FEET!"},
+    3:{sendable:"Sorry for the late reply! The stars only just delivered your message.",
+       whimsified:"Mercury has been slowing all communication, so I only just saw this. Forgive the delay; the stars predict a much quicker reply next time.",
+       maximum:"With Mercury in full retrograde, every message this week has been traveling by the scenic route. Yours has only just arrived. The cosmos asks your forgiveness. Your lucky number is however many hours this took. Your lucky color is the blue of an unread notification."},
+    4:{sendable:"Dearest, forgive my late reply; I have only just seen your message.\nEver yours.",
+       whimsified:"My dearest,\nI am mortified. Your message lay unread until this very moment, and I cannot forgive myself for keeping you waiting.\nYours, most apologetically.",
+       maximum:"My dearest heart,\nYour message waited, and I did not come. I have only now seen it, and I am undone. I beg you, with all that I am, to forgive me.\nYours, eternally and belatedly.\n\nP.S. I just saw this."},
+    5:{sendable:"Please be advised: I only just saw this. Apologies for the delay.",
+       whimsified:"The undersigned acknowledges receipt of your message and regrets the delay in response, said message having only now been reviewed.",
+       maximum:"NOTICE OF BELATED RESPONSE. The undersigned acknowledges receipt of your message as of this moment and tenders a full apology for the delay, notwithstanding any appearance of indifference, which is hereby expressly denied."},
+    6:{sendable:"Sorry for the late reply. Hermes only just delivered this.",
+       whimsified:"Your message wandered long, as Odysseus did, before it reached my eyes. Forgive the delay.",
+       maximum:"Sing, O Muse, of the message that wandered! Past sirens and storms it sailed, by fate delayed, until at last it reached the shores of my attention. I have seen it now. Let the long silence be forgiven, and let this reply sail swiftly home."},
+    7:{sendable:"Sorry for the late reply. I'm only just making space to respond.",
+       whimsified:"I want to acknowledge the delay. I only just saw this, and I'm giving myself grace for not responding sooner.",
+       maximum:"I want to honor the space that existed between your message and my reply. I didn't see it until now, and I'm choosing not to sit in guilt about that. I'm here now, fully present, and that's what matters."},
+    8:{sendable:"Sorry for the late reply! Just saw this. Grateful for your patience.",
+       whimsified:"Quick update: I only just saw your message. Grateful for people who give grace in a fast-moving world.",
+       maximum:"I replied late today.\n\nAnd I want to talk about it.\n\nIn a world obsessed with instant answers, I'm learning that a thoughtful reply beats a fast one.\n\nI just saw your message.\n\nAnd I'm grateful.\n\nAgree?"},
+    9:{sendable:"Okay, full honesty? I just saw this. Sorry for the late reply.",
+       whimsified:"Okay, so, I just saw your message. Was I ignoring it? No. Am I sorry? Yes. Moving on.",
+       maximum:"Okay, so. I just saw the message. Did I see it earlier? No. Am I sorry? Obviously. But let's be clear: I'm not here to ignore anyone. I'm here to reply. Eventually. …I said what I said."},
+    10:{sendable:"Sorry for the late reply; I just saw this.",
+       whimsified:"Apologies for the delayed response. Your message only just came to my attention.",
+       maximum:"Please forgive my late reply. Your message only now came to my attention, and I didn't want another moment to pass without responding."}
+  }}
+};
+const EXAMPLE_SET = "bread";
+const EX = EXAMPLE_SETS[EXAMPLE_SET];
+const EX_INPUT = EX.input;
 
 /* d = finger hole 1..10 (10 is the "0" hole) */
 const VOICES = [
-  {d:1, label:"1", e:"🪶", name:"Poetic",
-   ex:{sendable:"Sorry for the late reply. Your message waited for me, and I only just arrived.",
-       whimsified:"Forgive the silence. Your words sat patient as a lamp in a window until I finally looked up and saw them.",
-       maximum:"Your message has been waiting\nlike a letter in a coat I forgot I owned.\nI found it just now.\nForgive me the hours it spent alone."}},
-  {d:2, label:"2", e:"🎙️", name:"Sports commentator",
-   ex:{sendable:"Sorry for the late reply! Just saw this, and I'm back in the game.",
-       whimsified:"Sorry for the late reply! Just saw this. Late in the game, but what a comeback.",
-       maximum:"AND THEY'VE SEEN THE MESSAGE! LATE, FOLKS, VERY LATE, BUT THEY'VE SEEN IT! I HAVE NEVER WITNESSED A COMEBACK LIKE THIS! THE CROWD IS ON ITS FEET!"}},
-  {d:3, label:"3", e:"🔮", name:"Horoscope",
-   ex:{sendable:"Sorry for the late reply! The stars only just delivered your message.",
-       whimsified:"Mercury has been slowing all communication, so I only just saw this. Forgive the delay; the stars predict a much quicker reply next time.",
-       maximum:"With Mercury in full retrograde, every message this week has been traveling by the scenic route. Yours has only just arrived. The cosmos asks your forgiveness. Your lucky number is however many hours this took. Your lucky color is the blue of an unread notification."}},
-  {d:4, label:"4", e:"💌", name:"Love letter", letter:true,
-   ex:{sendable:"Dearest, forgive my late reply; I have only just seen your message.\nEver yours.",
-       whimsified:"My dearest,\nI am mortified. Your message lay unread until this very moment, and I cannot forgive myself for keeping you waiting.\nYours, most apologetically.",
-       maximum:"My dearest heart,\nYour message waited, and I did not come. I have only now seen it, and I am undone. I beg you, with all that I am, to forgive me.\nYours, eternally and belatedly.\n\nP.S. I just saw this."}},
-  {d:5, label:"5", e:"⚖️", name:"Legalese",
-   ex:{sendable:"Please be advised: I only just saw this. Apologies for the delay.",
-       whimsified:"The undersigned acknowledges receipt of your message and regrets the delay in response, said message having only now been reviewed.",
-       maximum:"NOTICE OF BELATED RESPONSE. The undersigned acknowledges receipt of your message as of this moment and tenders a full apology for the delay, notwithstanding any appearance of indifference, which is hereby expressly denied."}},
-  {d:6, label:"6", e:"⚡", name:"Mythology",
-   ex:{sendable:"Sorry for the late reply. Hermes only just delivered this.",
-       whimsified:"Your message wandered long, as Odysseus did, before it reached my eyes. Forgive the delay.",
-       maximum:"Sing, O Muse, of the message that wandered! Past sirens and storms it sailed, by fate delayed, until at last it reached the shores of my attention. I have seen it now. Let the long silence be forgiven, and let this reply sail swiftly home."}},
-  {d:7, label:"7", e:"🧘", name:"Therapy-speak",
-   ex:{sendable:"Sorry for the late reply. I'm only just making space to respond.",
-       whimsified:"I want to acknowledge the delay. I only just saw this, and I'm giving myself grace for not responding sooner.",
-       maximum:"I want to honor the space that existed between your message and my reply. I didn't see it until now, and I'm choosing not to sit in guilt about that. I'm here now, fully present, and that's what matters."}},
-  {d:8, label:"8", e:"💼", name:"Career influencer",
-   ex:{sendable:"Sorry for the late reply! Just saw this. Grateful for your patience.",
-       whimsified:"Quick update: I only just saw your message. Grateful for people who give grace in a fast-moving world.",
-       maximum:"I replied late today.\n\nAnd I want to talk about it.\n\nIn a world obsessed with instant answers, I'm learning that a thoughtful reply beats a fast one.\n\nI just saw your message.\n\nAnd I'm grateful.\n\nAgree?"}},
-  {d:9, label:"9", e:"📺", name:"Reality TV confessional",
-   ex:{sendable:"Okay, full honesty? I just saw this. Sorry for the late reply.",
-       whimsified:"Okay, so, I just saw your message. Was I ignoring it? No. Am I sorry? Yes. Moving on.",
-       maximum:"Okay, so. I just saw the message. Did I see it earlier? No. Am I sorry? Obviously. But let's be clear: I'm not here to ignore anyone. I'm here to reply. Eventually. …I said what I said."}},
-  {d:10, label:"0", e:"📜", name:"Well-Spoken", op:true,
-   ex:{sendable:"Sorry for the late reply; I just saw this.",
-       whimsified:"Apologies for the delayed response. Your message only just came to my attention.",
-       maximum:"Please forgive my late reply. Your message only now came to my attention, and I didn't want another moment to pass without responding."}}
+  {d:1, label:"1", e:"🪶", name:"Poetic"},
+  {d:2, label:"2", e:"🎙️", name:"Sports commentator"},
+  {d:3, label:"3", e:"🔮", name:"Horoscope"},
+  {d:4, label:"4", e:"💌", name:"Love letter", letter:true},
+  {d:5, label:"5", e:"⚖️", name:"Legalese"},
+  {d:6, label:"6", e:"⚡", name:"Mythology"},
+  {d:7, label:"7", e:"🧘", name:"Therapy-speak"},
+  {d:8, label:"8", e:"💼", name:"Career influencer"},
+  {d:9, label:"9", e:"📺", name:"Reality TV confessional"},
+  {d:10, label:"0", e:"📜", name:"Well-Spoken", op:true}
 ];
 const byD = d => VOICES.find(v => v.d === d);
 const COPIED = {1:"Copied. Let it fly.", 2:"IT'S IN THE CLIPBOARD!", 3:"Copied. The stars say send it.", 4:"Copied. Seal it with a kiss.",
   5:"Copied. Proceed accordingly.", 6:"Copied. Go forth.", 7:"Copied. You've got this.", 8:"Copied. Ship it.",
   9:"Copied. Send it. No regrets.", 10:"Copied. Ready to send."};
-const levelNames = v => v.letter ? ["Note", "Letter", "Declaration"]
-  : v.op ? ["Polished", "Articulate", "Eloquent"]
-  : ["Sendable", "Whimsified", "Maximum whimsification"];
+const LEVEL_LABELS = {
+  en:{std:["Sendable","Whimsified","Maximum whimsification"], letter:["Note","Letter","Declaration"], op:["Polished","Articulate","Eloquent"], hint:"· you could actually send this"},
+  es:{std:["Para enviar","Con chispa","Chispa total"], letter:["Nota","Carta","Declaración"], op:["Pulido","Articulado","Elocuente"], hint:"· podrías enviarlo tal cual"},
+  fr:{std:["Prêt à envoyer","Fantaisiste","Fantaisie totale"], letter:["Billet","Lettre","Déclaration"], op:["Soigné","Raffiné","Éloquent"], hint:"· tu pourrais l'envoyer tel quel"},
+  pt:{std:["Para enviar","Com fantasia","Fantasia total"], letter:["Bilhete","Carta","Declaração"], op:["Polido","Articulado","Eloquente"], hint:"· você pode enviar assim mesmo"},
+  it:{std:["Da inviare","Fantasioso","Fantasia totale"], letter:["Biglietto","Lettera","Dichiarazione"], op:["Curato","Articolato","Eloquente"], hint:"· potresti inviarlo così"},
+  de:{std:["Zum Verschicken","Verspielt","Maximal verspielt"], letter:["Notiz","Brief","Liebeserklärung"], op:["Gepflegt","Gewandt","Eloquent"], hint:"· so könntest du es verschicken"},
+  ar:{std:["جاهز للإرسال","بلمسة خيال","خيال بلا حدود"], letter:["رسالة قصيرة","رسالة","إعلان حب"], op:["مصقول","فصيح","بليغ"], hint:"· يمكنك إرساله كما هو"},
+  ja:{std:["そのまま送れる","ちょっと遊び心","遊び心全開"], letter:["一筆","手紙","愛の告白"], op:["整った文","洗練された文","雄弁な文"], hint:"· そのまま送れます"}
+};
+const LANG_CODES = {English:"en", Spanish:"es", French:"fr", Portuguese:"pt", Italian:"it", German:"de", Arabic:"ar", Japanese:"ja"};
+const levelLang = r => {
+  const c = String((r && r.language) || "en").toLowerCase().slice(0, 2);
+  return LEVEL_LABELS[c] ? c : "en";
+};
+const levelNames = (v, code) => {
+  const t = LEVEL_LABELS[code || "en"];
+  return v.letter ? t.letter : v.op ? t.op : t.std;
+};
 /* ===== SETUP: paste your Worker's address between the quotes (see the launch guide) ===== */
-const WORKER_URL = "PASTE-YOUR-WORKER-ADDRESS-HERE";
+const WORKER_URL = "https://whimsify.jpf2149.workers.dev";
 const SITE_URL = "whimsify.app";   // shown on the share image
 const ONLINE = /^https:\/\//.test(WORKER_URL);
+/* anonymous usage counts for your stats page: no message text is ever sent here */
+function track(type, extra){
+  if (!ONLINE) return;
+  try{ fetch(WORKER_URL.replace(/\/+$/, "") + "/event", {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain"}, body: JSON.stringify({type, ...extra})}).catch(() => {}); }catch{}
+}
 
 const STARTERS = [
   ["Grab bread", "Can you get me bread from the store?"],
@@ -302,7 +370,7 @@ const STARTERS = [
 ];
 
 const $ = id => document.getElementById(id);
-let current = 6, ctl = null, blocked = false, mode = "rewrite";
+let current = EX.line, ctl = null, blocked = false, mode = "rewrite";
 let results = null;   // {src, d, sendable, whimsified, maximum, example, mode}
 
 /* ---------- directory ---------- */
@@ -319,7 +387,7 @@ function renderKey(){
     const t = document.createElement("span"); t.textContent = v.name;
     if (v.op){ const o = document.createElement("span"); o.className = "op"; o.textContent = "Operator"; t.append(o); }
     b.append(n, e, t);
-    b.onclick = () => choose(v.d);
+    b.onclick = () => { choose(v.d); track("dial", {voice:v.d}); };
     li.append(b); ol.append(li);
   }
 }
@@ -333,7 +401,7 @@ function choose(d){
 }
 function showExample(d){
   const v = byD(d);
-  results = {src:EX_INPUT, d, mode:"rewrite", example:true, ...v.ex};
+  results = {src:EX_INPUT, d, mode:"rewrite", example:true, ...EX.byVoice[d]};
   renderResults(false);
 }
 
@@ -518,7 +586,7 @@ function autoDial(d){
     returnWheel(max, () => connect(d), true);
   });
 }
-function connect(d){ choose(d); tick(.03); }
+function connect(d){ choose(d); tick(.03); track("dial", {voice:d}); }
 
 /* ---------- mode, starters, language ---------- */
 function setMode(m){
@@ -526,7 +594,7 @@ function setMode(m){
   $("mode-rewrite").setAttribute("aria-pressed", String(m === "rewrite"));
   $("mode-reply").setAttribute("aria-pressed", String(m === "reply"));
   $("src-lbl").textContent = m === "rewrite" ? "Your message" : "The message you received";
-  $("src").placeholder = m === "rewrite" ? "e.g. Sorry for the late reply, I just saw this." : "e.g. Are you still coming tonight?";
+  $("src").placeholder = m === "rewrite" ? "e.g. Can you get me bread from the store?" : "e.g. Are you still coming tonight?";
 }
 $("mode-rewrite").onclick = () => setMode("rewrite");
 $("mode-reply").onclick = () => setMode("reply");
@@ -548,8 +616,11 @@ function renderResults(animateIn){
   $("t-whimsified").textContent = r.whimsified || "";
   $("t-maximum").textContent = r.maximum || "";
   $("pill").textContent = (r.example ? "Example · " : "") + "Line " + v.label + " · " + v.name;
-  const L = levelNames(v);
+  const code = levelLang(r);
+  const L = levelNames(v, code);
   $("l1").textContent = L[0]; $("l2").textContent = L[1]; $("l3").textContent = L[2];
+  $("h1").textContent = LEVEL_LABELS[code].hint;
+  $("ladder").lang = code;
   $("h1").hidden = !!(v.letter || v.op);
   $("redial").hidden = !(ONLINE && !r.example);
   $("share").hidden = !ONLINE;
@@ -594,7 +665,8 @@ async function whimsify(again){
     if (!res.ok || !data || data.error) throw {code: (data && data.error) || "upstream"};
     if (!data.maximum) throw {code:"invalid_json"};
     results = {src:text, d:v.d, mode:runMode, example:false,
-      sendable:String(data.sendable || ""), whimsified:String(data.whimsified || ""), maximum:String(data.maximum || "")};
+      sendable:String(data.sendable || ""), whimsified:String(data.whimsified || ""), maximum:String(data.maximum || ""),
+      language: LANG_CODES[$("lang").value] || String(data.language || "en")};
     $("ladder").classList.remove("loading");
     renderResults(true);
     bell();
@@ -623,6 +695,7 @@ function showToast(msg){
 $("ladder").addEventListener("click", async e => {
   const b = e.target.closest(".copy"); if (!b || !results) return;
   const t = results[b.dataset.k] || "";
+  track("copy", {voice:results.d, level:b.dataset.k, example:!!results.example});
   try{ await navigator.clipboard.writeText(t); b.textContent = "Copied"; showToast(COPIED[results.d] || "Copied."); }
   catch{ const p = b.closest(".rung").querySelector(".txt"); const r = document.createRange(); r.selectNodeContents(p); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected"; }
   setTimeout(() => b.textContent = "Copy", 1400);
@@ -686,6 +759,7 @@ async function makeCard(){
 }
 $("share").onclick = async () => {
   if (!results) return;
+  track("share", {voice:results.d});
   const btn = $("share"); btn.disabled = true;
   try{
     const blob = await makeCard();
@@ -705,7 +779,7 @@ $("share").onclick = async () => {
 /* ---------- boot ---------- */
 buildPhone(); setRot(0); setMode("rewrite");
 $("src").value = EX_INPUT; updateCount();
-choose(6);
+choose(EX.line);
 $("readout").textContent = "Drag a hole to the stop, or just tap it.";
 $("share").hidden = !ONLINE;
 </script>
