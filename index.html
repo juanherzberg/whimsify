@@ -268,9 +268,9 @@ const EXAMPLE_SETS = {
     8:{sendable:"Can you grab bread from the store? Small asks, big impact.",
        whimsified:"Quick ask: could you pick up bread from the store? Great teams support each other in the small moments.",
        maximum:"I'm asking for bread.\n\nJust bread. From the store.\n\nAnd it reminded me: leadership is knowing when to delegate.\n\nThe best leaders don't do everything themselves.\n\nThey build trust.\n\nSo: can you get me bread from the store?"},
-    9:{sendable:"Okay, honest question: can you get me bread from the store?",
-       whimsified:"Okay, so. Bread. From the store. Can you get it? Is it a big ask? No. Do I need it? Yes.",
-       maximum:"Okay, so. I need bread. Am I going to get it myself? No. That's where you come in. Let's be clear: this isn't a favor. It's a collaboration. …Bread. From the store. I said what I said."},
+    9:{sendable:"Can you get me bread from the store? Small request. Zero shenanigans.",
+       whimsified:"So, I need bread. Not fancy bread, not a lot of bread, just bread. The simplest food there is, and somehow it's become a whole kerfuffle. Could you grab some from the store?",
+       maximum:"Okay, let's talk about bread. Flour, water, a little yeast. Humans figured this out thousands of years ago, and somehow I still can't schlep a loaf home on my own. So: could you grab some from the store? Just bread. No shenanigans. It's the least complicated thing in the whole store, and you'd make my whole day."},
     10:{sendable:"Could you pick up some bread from the store?",
        whimsified:"Would you mind picking up bread from the store? I'd really appreciate it.",
        maximum:"Would you be kind enough to pick up some bread from the store? I'd be very grateful for your help."}
@@ -300,9 +300,9 @@ const EXAMPLE_SETS = {
     8:{sendable:"Sorry for the late reply! Just saw this. Grateful for your patience.",
        whimsified:"Quick update: I only just saw your message. Grateful for people who give grace in a fast-moving world.",
        maximum:"I replied late today.\n\nAnd I want to talk about it.\n\nIn a world obsessed with instant answers, I'm learning that a thoughtful reply beats a fast one.\n\nI just saw your message.\n\nAnd I'm grateful.\n\nAgree?"},
-    9:{sendable:"Okay, full honesty? I just saw this. Sorry for the late reply.",
-       whimsified:"Okay, so, I just saw your message. Was I ignoring it? No. Am I sorry? Yes. Moving on.",
-       maximum:"Okay, so. I just saw the message. Did I see it earlier? No. Am I sorry? Obviously. But let's be clear: I'm not here to ignore anyone. I'm here to reply. Eventually. …I said what I said."},
+    9:{sendable:"Sorry for the late reply, I just saw this. Fast? No. Honest? Yes.",
+       whimsified:"Sorry for the late reply, I just saw this. We invented instant messaging, and I still managed to reply at the speed of a carrier pigeon that likes to dillydally.",
+       maximum:"Sorry for the late reply. I just saw this. Messages arrive in one second. One second! The marvel of the modern age, and somewhere between your phone and my brain, it skedaddled off on the scenic route. I'm not blaming the phone. I'm saying the phone and I need to talk. Anyway: I'm sorry, I saw it, I'm here. Fashionably late, which is the best kind of late."},
     10:{sendable:"Sorry for the late reply; I just saw this.",
        whimsified:"Apologies for the delayed response. Your message only just came to my attention.",
        maximum:"Please forgive my late reply. Your message only now came to my attention, and I didn't want another moment to pass without responding."}
@@ -322,13 +322,13 @@ const VOICES = [
   {d:6, label:"6", e:"⚡", name:"Mythology"},
   {d:7, label:"7", e:"🧘", name:"Therapy-speak"},
   {d:8, label:"8", e:"💼", name:"Career influencer"},
-  {d:9, label:"9", e:"📺", name:"Reality TV confessional"},
+  {d:9, label:"9", e:"🎤", name:"Stand-up comic"},
   {d:10, label:"0", e:"📜", name:"Well-Spoken", op:true}
 ];
 const byD = d => VOICES.find(v => v.d === d);
 const COPIED = {1:"Copied. Let it fly.", 2:"IT'S IN THE CLIPBOARD!", 3:"Copied. The stars say send it.", 4:"Copied. Seal it with a kiss.",
   5:"Copied. Proceed accordingly.", 6:"Copied. Go forth.", 7:"Copied. You've got this.", 8:"Copied. Ship it.",
-  9:"Copied. Send it. No regrets.", 10:"Copied. Ready to send."};
+  9:"Copied. No shenanigans.", 10:"Copied. Ready to send."};
 const LEVEL_LABELS = {
   en:{std:["Sendable","Whimsified","Maximum whimsification"], letter:["Note","Letter","Declaration"], op:["Polished","Articulate","Eloquent"], hint:"· you could actually send this"},
   es:{std:["Para enviar","Con chispa","Chispa total"], letter:["Nota","Carta","Declaración"], op:["Pulido","Articulado","Elocuente"], hint:"· podrías enviarlo tal cual"},
