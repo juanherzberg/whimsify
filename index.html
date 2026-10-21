@@ -840,7 +840,7 @@ $("share").onclick = async () => {
     const name = "whimsify-" + v.name.toLowerCase().replace(/[^a-z]+/g, "-") + ".png";
     const file = new File([blob], name, {type:"image/png"});
     if (navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file], title:"Whimsify"}); return; }catch(err){ if (err && err.name === "AbortError") return; }
+      try{ await navigator.share({files:[file]}); return; }catch(err){ if (err && err.name === "AbortError") return; }
     }
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = name;
