@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Share button · Whimsify</title>
+<meta name="description" content="How to whimsify a message from any app on your iPhone with the Share button.">
+<meta name="theme-color" content="#efece6">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--paper:#efece6;--sheet:#fff;--ink:#1b1b1f;--ink-soft:#6f6d68;--line:#e4e0d8;--accent:#b3172c;--accent-soft:#fbeaec;--f-display:"Fraunces",Georgia,serif;--f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--f-body);padding:calc(env(safe-area-inset-top,0px) + 28px) 16px calc(env(safe-area-inset-bottom,0px) + 64px)}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.back{color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem}
+h1{font-family:var(--f-display);font-weight:800;font-size:2.3rem;line-height:1.1;margin:0;font-variation-settings:"SOFT" 100,"WONK" 1,"opsz" 144}
+.lede{margin:0;color:var(--ink-soft);font-style:italic}
+ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+ol li{counter-increment:s;background:var(--sheet);border-radius:8px;box-shadow:0 1px 2px rgba(30,25,15,.05),0 2px 8px rgba(30,25,15,.05);padding:14px 18px 14px 58px;position:relative}
+ol li::before{content:counter(s);position:absolute;left:16px;top:13px;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;font-size:.9rem}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.3rem;margin:8px 0 0}
+b{font-weight:600}
+.tip{background:var(--sheet);border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px;margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" id="back" href="./">← Back to Whimsify</a>
+  <h1>Whimsify from any app</h1>
+  <p class="lede">Write your message where you'd normally send it, then let Whimsify give it a better line.</p>
+
+  <ol>
+    <li><b>Write and select your message.</b> In Messages, Notes, Mail, WhatsApp or almost any app, type your message, then press on it and choose <b>Select All</b>.</li>
+    <li><b>Tap Share.</b> It's in the little menu above the text. If you don't see it, tap the <b>›</b> arrow to find it.</li>
+    <li><b>Tap Whimsify</b> in the row of apps.</li>
+    <li><b>Dial a voice</b>, then tap the version you like to copy it.</li>
+    <li><b>Paste it back</b> over your original message and send.</li>
+  </ol>
+
+  <h2>Don't see Whimsify?</h2>
+  <ol>
+    <li>In the Share sheet, scroll the row of apps all the way to the end and tap <b>More</b>.</li>
+    <li>Tap <b>Edit</b>, then tap the <b>+</b> next to Whimsify to add it to your Favorites.</li>
+    <li>Drag it to the top so it's always first in line, then tap <b>Done</b>.</li>
+  </ol>
+
+  <p class="tip">Whimsify only shows up when you've selected some text. Your message is rewritten by Claude and isn't stored.</p>
+</div>
+<script>
+if (new URLSearchParams(location.search).get("app") === "1") document.getElementById("back").href = "./?app=1";
+</script>
+</body>
+</html>

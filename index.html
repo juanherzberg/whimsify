@@ -152,7 +152,23 @@ select{font:inherit;font-size:.85rem;padding:6px 8px;border-radius:6px;border:1p
 .reveal .r2{animation-delay:.45s}
 .reveal .r3{animation-delay:.95s}
 @media (max-width:480px){.lvl .hint{display:none}}
-footer{font-size:.82rem;color:var(--ink-soft);text-align:center;font-style:italic}
+footer{font-size:.82rem;color:var(--ink-soft);text-align:center;font-style:italic;display:flex;flex-direction:column;gap:6px}
+footer a,.app-links a{color:var(--ink-soft);text-decoration:underline;text-underline-offset:2px}
+footer a:hover,.app-links a:hover{color:var(--accent)}
+.app-links{display:none;justify-content:center;gap:18px;font-size:.82rem}
+
+/* App mode: whimsify.app/?app=1, shown inside the iPhone app. Tighter, so the message box and results sit close to the dial. */
+html.app body{padding-block:12px 40px}
+html.app .wrap{gap:16px}
+html.app header{gap:2px}
+html.app h1{font-size:2.1rem}
+html.app .sub-tag{display:none}
+html.app .desk{gap:12px}
+html.app #phone{max-width:290px}
+html.app .phone-wrap{gap:2px}
+html.app .pad{padding:14px}
+html.app footer{display:none}
+html.app .app-links{display:flex}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -236,10 +252,29 @@ footer{font-size:.82rem;color:var(--ink-soft);text-align:center;font-style:itali
   </section>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <footer id="foot">Your message is sent to Claude to be rewritten and isn't stored.</footer>
+  <nav class="app-links" aria-label="Help"><a href="share-help.html?app=1">How to use the Share button</a><a href="privacy.html?app=1">Privacy</a></nav>
+  <footer id="foot"><span>Your message is sent to Claude to be rewritten and isn't stored.</span><span><a href="privacy.html">Privacy</a></span></footer>
 </div>
 
 <script>
+/* ===== App mode and the "that's me" mark ===== */
+const PARAMS = new URLSearchParams(location.search);
+const APP = PARAMS.get("app") === "1";
+if (APP) document.documentElement.classList.add("app");
+/* Open whimsify.app/?me=YOUR-STATS-KEY once on each of your devices so your stats page can tell your use apart.
+   whimsify.app/?me=off removes the mark. The key stays on this device only. */
+let ME = "", meNotice = "";
+try{
+  if (PARAMS.has("me")){
+    const m = PARAMS.get("me") || "";
+    if (m === "off"){ localStorage.removeItem("whimsify-me"); meNotice = "This device no longer counts as you."; }
+    else if (m){ localStorage.setItem("whimsify-me", m); meNotice = "This device now counts as you in your stats."; }
+    PARAMS.delete("me");
+    const q = PARAMS.toString();
+    history.replaceState(null, "", location.pathname + (q ? "?" + q : "") + location.hash);
+  }
+  ME = localStorage.getItem("whimsify-me") || "";
+}catch{}
 const W = s => s.split(",").map(x => x.trim());
 /* ===== Opening example: switch EXAMPLE_SET to "lateReply" to bring back the Mythology / late-reply opener ===== */
 const EXAMPLE_SETS = {
@@ -352,10 +387,12 @@ const levelNames = (v, code) => {
 const WORKER_URL = "https://whimsify.jpf2149.workers.dev";
 const SITE_URL = "whimsify.app";   // shown on the share image
 const ONLINE = /^https:\/\//.test(WORKER_URL);
+const API = WORKER_URL.replace(/\/+$/, "");
+const CLIENT_QS = APP ? "?client=ios-app" : "";   // lets the stats page count the iPhone app screen separately
 /* anonymous usage counts for your stats page: no message text is ever sent here */
 function track(type, extra){
   if (!ONLINE) return;
-  try{ fetch(WORKER_URL.replace(/\/+$/, "") + "/event", {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain"}, body: JSON.stringify({type, ...extra})}).catch(() => {}); }catch{}
+  try{ fetch(API + "/event" + CLIENT_QS, {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain"}, body: JSON.stringify({type, ...extra, ...(ME ? {me:ME} : {})})}).catch(() => {}); }catch{}
 }
 
 const STARTERS = [
@@ -658,8 +695,8 @@ async function whimsify(again){
     const prev = again && results && !results.example ? {sendable:results.sendable, whimsified:results.whimsified, maximum:results.maximum} : null;
     let res;
     try{
-      res = await fetch(WORKER_URL, {method:"POST", headers:{"Content-Type":"application/json"}, signal: ctl.signal,
-        body: JSON.stringify({text, voice:v.d, lang:$("lang").value, mode:runMode, prev})});
+      res = await fetch(API + "/" + CLIENT_QS, {method:"POST", headers:{"Content-Type":"application/json"}, signal: ctl.signal,
+        body: JSON.stringify({text, voice:v.d, lang:$("lang").value, mode:runMode, prev, ...(ME ? {me:ME} : {})})});
     }catch(err){ throw {code: err && err.name === "AbortError" ? "cancelled" : "network"}; }
     const data = await res.json().catch(() => null);
     if (!res.ok || !data || data.error) throw {code: (data && data.error) || "upstream"};
@@ -782,6 +819,7 @@ $("src").value = EX_INPUT; updateCount();
 choose(EX.line);
 $("readout").textContent = "Drag a hole to the stop, or just tap it.";
 $("share").hidden = !ONLINE;
+if (meNotice) setTimeout(() => showToast(meNotice), 400);
 </script>
 
 </body>
