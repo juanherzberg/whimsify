@@ -23,6 +23,8 @@ h2{font-family:var(--f-display);font-weight:700;font-size:1.15rem;margin:0 0 6px
 p,ul{margin:0}ul{padding-left:20px}li+li{margin-top:4px}
 a{color:var(--accent)}
 .small{font-size:.82rem;color:var(--ink-soft)}
+.switch{display:flex;align-items:center;gap:12px;font-weight:600;cursor:pointer}
+.switch input{width:22px;height:22px;accent-color:var(--accent);margin:0;flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -41,14 +43,23 @@ a{color:var(--accent)}
     <ul>
       <li><b>Not your messages.</b> Whimsify doesn't store or log the text you write or the versions it gets back.</li>
       <li><b>Not your IP address, name or contacts.</b> There are no accounts, no ads and no tracking across other apps or websites.</li>
-      <li><b>Anonymous usage counts.</b> To see which voices people enjoy, the server records small events such as "a rewrite in Sports commentator, in English" or "level 3 was copied", plus whether it came from the website or the iPhone app. Each event carries a scrambled code that changes every day, so visits can't be linked over time or traced back to you.</li>
+      <li><b>Anonymous usage counts, if you allow them.</b> To see which voices people enjoy, the server records small events such as "a rewrite in Sports commentator, in English" or "level 3 was copied", plus whether it came from the website or the iPhone app. Each event carries a scrambled code that changes every day, so visits can't be linked over time or traced back to you. You can turn this off below at any time.</li>
       <li><b>A daily limit counter.</b> To keep the service free, each person gets a limited number of rewrites a day. The counter uses that same scrambled daily code (on iPhone, made from a random ID the app creates for itself) and is deleted after two days.</li>
     </ul>
   </section>
 
   <section>
     <h2>Claude and Anthropic</h2>
-    <p>Your message is processed by Anthropic to create the rewrite. How Anthropic handles it is described in <a href="https://www.anthropic.com/legal/privacy" rel="noopener">Anthropic's privacy policy</a>.</p>
+    <p>Your message is processed by Anthropic to create the rewrite. In the iPhone app, you're asked to agree to this before your first rewrite. How Anthropic handles it is described in <a href="https://www.anthropic.com/legal/privacy" rel="noopener">Anthropic's privacy policy</a>.</p>
+  </section>
+
+  <section>
+    <h2>Usage stats</h2>
+    <label class="switch" for="stats">
+      <input type="checkbox" id="stats" checked>
+      <span>Share anonymous usage stats from this device</span>
+    </label>
+    <p class="small" id="stats-note" style="margin-top: 8px">Turning this off stops the website and the iPhone app screen on this device from sending any usage counts. For the Share button, use Privacy at the top of the Whimsify sheet.</p>
   </section>
 
   <section>
@@ -70,6 +81,14 @@ a{color:var(--accent)}
 </div>
 <script>
 if (new URLSearchParams(location.search).get("app") === "1") document.getElementById("back").href = "./?app=1";
+const box = document.getElementById("stats");
+try{ box.checked = localStorage.getItem("whimsify-nostats") !== "1"; }catch{}
+box.addEventListener("change", () => {
+  try{
+    if (box.checked) localStorage.removeItem("whimsify-nostats");
+    else localStorage.setItem("whimsify-nostats", "1");
+  }catch{}
+});
 </script>
 </body>
 </html>

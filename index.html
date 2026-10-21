@@ -169,6 +169,19 @@ html.app .phone-wrap{gap:2px}
 html.app .pad{padding:14px}
 html.app footer{display:none}
 html.app .app-links{display:flex}
+/* App mode: a quiet pink pill under the phone teaching the Share button */
+.share-pill{display:none;align-items:center;gap:7px;margin-top:4px;padding:8px 14px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:.85rem;font-weight:600;text-decoration:none}
+.share-pill:hover{opacity:.85}
+.share-pill svg{flex:0 0 auto}
+html.app .share-pill{display:inline-flex}
+/* App mode: the tip shown the first two times someone copies */
+.tip{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom, 0px) + 18px);max-width:440px;margin:0 auto;background:var(--accent-soft);color:var(--ink);border:1px solid var(--edge1);border-radius:16px;padding:14px 16px;box-shadow:0 8px 24px rgba(120,20,35,.18);display:flex;flex-direction:column;gap:8px;z-index:5}
+.tip b{color:var(--ink)}
+.tip .tip-head{font-weight:700;color:var(--accent);font-size:.95rem}
+.tip .tip-body{font-size:.9rem;line-height:1.45;color:#3d3a36}
+.tip .tip-actions{display:flex;justify-content:flex-end;gap:18px;font-size:.9rem;font-weight:600}
+.tip .tip-actions a{color:var(--accent);text-decoration:none;padding:6px 0}
+.tip .tip-actions button{font:inherit;font-weight:600;color:var(--ink);background:none;border:0;padding:6px 0;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -186,6 +199,7 @@ html.app .app-links{display:flex}
       <svg id="phone" viewBox="0 0 420 400" role="group" aria-label="Rotary phone. Drag a finger hole clockwise to the metal stop, or tap a hole, to dial a voice."></svg>
       <div class="readout" id="readout" aria-live="polite">Drag a hole to the stop, or just tap it.</div>
       <button class="sound" id="sound" type="button" aria-pressed="true">🔔 Dial clicks on</button>
+      <a class="share-pill" href="share-help.html?app=1"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 8l5-5 5 5"></path><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>Use Whimsify in any app<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
     </div>
     <nav class="key" aria-label="Directory of voices">
       <div class="key-head"><h2>Directory</h2><span class="sub">Dial a number, or tap a line</span></div>
@@ -252,7 +266,12 @@ html.app .app-links{display:flex}
   </section>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <nav class="app-links" aria-label="Help"><a href="share-help.html?app=1">How to use the Share button</a><a href="privacy.html?app=1">Privacy</a></nav>
+  <nav class="app-links" aria-label="Help"><a href="privacy.html?app=1">Privacy</a></nav>
+  <div class="tip" id="tip" role="status" hidden>
+    <span class="tip-head" id="tip-head"></span>
+    <span class="tip-body">Next time, skip the trip here: in Messages, Notes or Mail, select your text and tap <b>Share → Whimsify</b>.</span>
+    <div class="tip-actions"><a href="share-help.html?app=1">Show me how</a><button type="button" id="tip-ok">Got it</button></div>
+  </div>
   <footer id="foot"><span>Your message is sent to Claude to be rewritten and isn't stored.</span><span><a href="privacy.html">Privacy</a></span></footer>
 </div>
 
@@ -275,6 +294,9 @@ try{
   }
   ME = localStorage.getItem("whimsify-me") || "";
 }catch{}
+/* "Share anonymous usage stats" switch on the privacy page. Off means nothing is logged for this device. */
+let NOSTATS = false;
+try{ NOSTATS = localStorage.getItem("whimsify-nostats") === "1"; }catch{}
 const W = s => s.split(",").map(x => x.trim());
 /* ===== Opening example: switch EXAMPLE_SET to "lateReply" to bring back the Mythology / late-reply opener ===== */
 const EXAMPLE_SETS = {
@@ -391,7 +413,7 @@ const API = WORKER_URL.replace(/\/+$/, "");
 const CLIENT_QS = APP ? "?client=ios-app" : "";   // lets the stats page count the iPhone app screen separately
 /* anonymous usage counts for your stats page: no message text is ever sent here */
 function track(type, extra){
-  if (!ONLINE) return;
+  if (!ONLINE || NOSTATS) return;
   try{ fetch(API + "/event" + CLIENT_QS, {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain"}, body: JSON.stringify({type, ...extra, ...(ME ? {me:ME} : {})})}).catch(() => {}); }catch{}
 }
 
@@ -696,7 +718,7 @@ async function whimsify(again){
     let res;
     try{
       res = await fetch(API + "/" + CLIENT_QS, {method:"POST", headers:{"Content-Type":"application/json"}, signal: ctl.signal,
-        body: JSON.stringify({text, voice:v.d, lang:$("lang").value, mode:runMode, prev, ...(ME ? {me:ME} : {})})});
+        body: JSON.stringify({text, voice:v.d, lang:$("lang").value, mode:runMode, prev, ...(ME ? {me:ME} : {}), ...(NOSTATS ? {nostats:true} : {})})});
     }catch(err){ throw {code: err && err.name === "AbortError" ? "cancelled" : "network"}; }
     const data = await res.json().catch(() => null);
     if (!res.ok || !data || data.error) throw {code: (data && data.error) || "upstream"};
@@ -724,6 +746,20 @@ $("stop").onclick = () => ctl?.abort();
 const updateCount = () => $("count").textContent = $("src").value.length + " / 280";
 $("src").addEventListener("input", updateCount);
 $("src").addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") whimsify(false); });
+/* In the app, the first two copies show a bigger tip about the Share button. "Got it" stops it for good. */
+let tipTimer = null;
+function showCopyTip(head){
+  if (!APP) return false;
+  let n = 0;
+  try{ n = Number(localStorage.getItem("whimsify-tip") || 0); }catch{}
+  if (n >= 2) return false;
+  try{ localStorage.setItem("whimsify-tip", String(n + 1)); }catch{}
+  $("tip-head").textContent = head;
+  $("tip").hidden = false;
+  clearTimeout(tipTimer); tipTimer = setTimeout(() => { $("tip").hidden = true; }, 9000);
+  return true;
+}
+$("tip-ok").onclick = () => { $("tip").hidden = true; try{ localStorage.setItem("whimsify-tip", "2"); }catch{} };
 let toastTimer = null;
 function showToast(msg){
   const t = $("toast"); t.textContent = msg; t.classList.add("show");
@@ -733,7 +769,7 @@ $("ladder").addEventListener("click", async e => {
   const b = e.target.closest(".copy"); if (!b || !results) return;
   const t = results[b.dataset.k] || "";
   track("copy", {voice:results.d, level:b.dataset.k, example:!!results.example});
-  try{ await navigator.clipboard.writeText(t); b.textContent = "Copied"; showToast(COPIED[results.d] || "Copied."); }
+  try{ await navigator.clipboard.writeText(t); b.textContent = "Copied"; if (!showCopyTip(COPIED[results.d] || "Copied.")) showToast(COPIED[results.d] || "Copied."); }
   catch{ const p = b.closest(".rung").querySelector(".txt"); const r = document.createRange(); r.selectNodeContents(p); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected"; }
   setTimeout(() => b.textContent = "Copy", 1400);
 });
