@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Support · Whimsify</title>
+<meta name="description" content="Help with Whimsify: the Share button, daily limits, languages and how to get in touch.">
+<meta name="theme-color" content="#efece6">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--paper:#efece6;--sheet:#fff;--ink:#1b1b1f;--ink-soft:#6f6d68;--accent:#b3172c;--f-display:"Fraunces",Georgia,serif;--f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--f-body);padding:calc(env(safe-area-inset-top,0px) + 28px) 16px calc(env(safe-area-inset-bottom,0px) + 64px)}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.back{color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem}
+h1{font-family:var(--f-display);font-weight:800;font-size:2.3rem;line-height:1.1;margin:0;font-variation-settings:"SOFT" 100,"WONK" 1,"opsz" 144}
+.lede{margin:0;color:var(--ink-soft);font-style:italic}
+section{background:var(--sheet);border-radius:8px;box-shadow:0 1px 2px rgba(30,25,15,.05),0 2px 8px rgba(30,25,15,.05);padding:16px 20px}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.15rem;margin:0 0 6px}
+p{margin:0}
+a{color:var(--accent)}
+.contact{font-size:1.05rem;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" id="back" href="./">← Back to Whimsify</a>
+  <h1>Support</h1>
+  <p class="lede">Something not ringing right? Here's help, and how to reach a real person.</p>
+
+  <section>
+    <h2>Get in touch</h2>
+    <p class="contact"><a href="mailto:jpf2149@columbia.edu">jpf2149@columbia.edu</a></p>
+    <p>Questions, bugs, ideas for a new voice: all welcome. Replies usually within a few days.</p>
+  </section>
+
+  <section>
+    <h2>Whimsify isn't in my Share menu</h2>
+    <p>Select some text first, then tap Share. If Whimsify isn't in the row of apps, scroll to the end, tap More, and add it to your favorites. <a href="share-help.html">Step-by-step help</a>.</p>
+  </section>
+
+  <section>
+    <h2>Some apps don't show Share</h2>
+    <p>A few apps, such as WhatsApp, leave Share out of the typing box. There, copy your message, open Whimsify, paste it in, and copy the version you like back.</p>
+  </section>
+
+  <section>
+    <h2>"You've used all of today's calls"</h2>
+    <p>To keep Whimsify free, each person gets a set number of rewrites a day. The lines reopen the next day.</p>
+  </section>
+
+  <section>
+    <h2>"This one's better said plainly"</h2>
+    <p>Whimsify won't rewrite messages that are sexually explicit, threatening, hateful, or meant to bully someone. Romance, flirting and teasing are welcome.</p>
+  </section>
+
+  <section>
+    <h2>Languages</h2>
+    <p>Whimsify writes back in the language you write in, or in English, Spanish, French, Portuguese, Italian, German, Arabic or Japanese if you choose one.</p>
+  </section>
+
+  <section>
+    <h2>Privacy</h2>
+    <p>Your message is sent to Claude by Anthropic to be rewritten. Whimsify never stores it. <a href="privacy.html">Read the privacy policy</a>.</p>
+  </section>
+</div>
+<script>
+if (new URLSearchParams(location.search).get("app") === "1") document.getElementById("back").href = "./?app=1";
+</script>
+</body>
+</html>
