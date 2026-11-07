@@ -18,6 +18,8 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
+<meta name="apple-itunes-app" content="app-id=6827225171">
+<script>if(new URLSearchParams(location.search).get("app")==="1")document.documentElement.classList.add("app");</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Whimsify">
@@ -170,6 +172,11 @@ html.app .pad{padding:14px}
 html.app footer{display:none}
 html.app body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--paper);z-index:20}
 html.app .app-links{display:flex}
+/* Website only: App Store badge under the tagline */
+.store{display:inline-block;margin:8px auto 0;line-height:0;border-radius:9px;transition:transform .15s}
+.store:hover{transform:translateY(-1px)}
+.store img{height:44px;width:auto;display:block}
+html.app .store{display:none}
 /* App mode: a quiet pink pill under the phone teaching the Share button */
 .share-pill{display:none;align-items:center;gap:7px;margin-top:4px;padding:8px 14px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:.85rem;font-weight:600;text-decoration:none}
 .share-pill:hover{opacity:.85}
@@ -193,6 +200,7 @@ html.app .share-pill{display:inline-flex}
     <h1>Whimsify</h1>
     <p class="tag">Same message. Different line.</p>
     <p class="sub-tag">For every text. Even the boring ones.</p>
+    <a class="store" href="https://apps.apple.com/app/id6827225171" rel="noopener"><img src="https://tools.applemarketingtools.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" alt="Download on the App Store" width="132" height="44"></a>
   </header>
 
   <section class="desk" aria-label="Choose a voice">
