@@ -173,9 +173,12 @@ html.app footer{display:none}
 html.app body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--paper);z-index:20}
 html.app .app-links{display:flex}
 /* Website only: App Store badge under the tagline */
-.store{display:inline-block;margin:8px auto 0;line-height:0;border-radius:9px;transition:transform .15s}
+.store{display:inline-flex;align-items:center;gap:10px;margin:10px auto 0;padding:9px 18px 9px 14px;background:var(--ink,#1b1b1f);color:#fff;border-radius:12px;text-decoration:none;transition:transform .15s}
 .store:hover{transform:translateY(-1px)}
-.store img{height:44px;width:auto;display:block}
+.store svg{flex:0 0 auto}
+.store span{display:flex;flex-direction:column;text-align:left;line-height:1.1}
+.store small{font-size:.68rem;opacity:.8;letter-spacing:.02em}
+.store b{font-size:1rem;font-weight:600}
 html.app .store{display:none}
 /* App mode: a quiet pink pill under the phone teaching the Share button */
 .share-pill{display:none;align-items:center;gap:7px;margin-top:4px;padding:8px 14px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:.85rem;font-weight:600;text-decoration:none}
@@ -200,7 +203,7 @@ html.app .share-pill{display:inline-flex}
     <h1>Whimsify</h1>
     <p class="tag">Same message. Different line.</p>
     <p class="sub-tag">For every text. Even the boring ones.</p>
-    <a class="store" href="https://apps.apple.com/app/id6827225171" rel="noopener"><img src="https://tools.applemarketingtools.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" alt="Download on the App Store" width="132" height="44"></a>
+    <a class="store" href="https://apps.apple.com/app/id6827225171" rel="noopener"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"></rect><path d="M11 18h2"></path></svg><span><small>Now on iPhone</small><b>Get it on the App Store</b></span></a>
   </header>
 
   <section class="desk" aria-label="Choose a voice">
